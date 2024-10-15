@@ -117,7 +117,7 @@ public class Model extends Observable {
         // changed local variable to true.
 
         switch (side) {
-            case Side.EAST -> {
+            case EAST -> {
                 for (int i = 0; i < len; i++) {
                     boolean[] mergeable = new boolean[len];
                     Arrays.fill(mergeable, true);
@@ -161,7 +161,7 @@ public class Model extends Observable {
                     }
                 }
             }
-            case Side.WEST -> {
+            case WEST -> {
                 for (int i = 0; i < len; i++) {
                     boolean[] mergeable = new boolean[len];
                     Arrays.fill(mergeable, true);
@@ -205,7 +205,7 @@ public class Model extends Observable {
                     }
                 }
             }
-            case Side.NORTH -> {
+            case NORTH -> {
                 for (int i = 0; i < len; i++) {
                     boolean[] mergeable = new boolean[len];
                     Arrays.fill(mergeable, true);
@@ -249,7 +249,7 @@ public class Model extends Observable {
                     }
                 }
             }
-            case Side.SOUTH -> {
+            case SOUTH -> {
                 for (int i = 0; i < len; i++) {
                     boolean[] mergeable = new boolean[len];
                     Arrays.fill(mergeable, true);
