@@ -1,5 +1,6 @@
 package game2048;
 
+import java.util.Arrays;
 import java.util.Formatter;
 import java.util.Observable;
 
@@ -94,7 +95,7 @@ public class Model extends Observable {
         setChanged();
     }
 
-    /** Tilt the board toward SIDE. Return true iff this changes the board.
+    /** Tilt the board toward SIDE. Return true if this changes the board.
      *
      * 1. If two Tile objects are adjacent in the direction of motion and have
      *    the same value, they are merged into one Tile of twice the original
@@ -109,10 +110,190 @@ public class Model extends Observable {
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
+        int len = board.size();
 
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+
+        switch (side) {
+            case Side.EAST -> {
+                for (int i = 0; i < len; i++) {
+                    boolean[] mergeable = new boolean[len];
+                    Arrays.fill(mergeable, true);
+                    for (int j = (len - 1); j >= 0; j--) {
+                        Tile t = board.tile(j, i); // j represents column, i represents row
+                        if (t != null){
+                            for (int k = j + 1; k < len; k++) {
+                                Tile cur_tile = board.tile(k, i);
+                                if (cur_tile == null){
+                                    board.move(k, i, t);
+                                    changed = true;
+                                    t = board.tile(k, i);
+                                }
+                                else if (cur_tile.value() == t.value()){
+                                    board.move(k, i, t);
+                                    changed = true;
+                                    this.score += board.tile(k, i).value();
+                                    Tile null_tile = Tile.create(0, k - 1, i);
+                                    board.addTile(null_tile);
+                                    int[][] source = new int[len][len];
+                                    mergeable[k] = false;
+                                    for (int c = 0; c < len; ++c){
+                                        for (int r = len - 1; r >= 0; --r){
+                                            Tile cur = board.tile(r, c);
+                                            if (cur == null){
+                                                source[len - c - 1][r] = 0;
+                                            }
+                                            else{
+                                                source[len - c - 1][r] = cur.value();
+                                            }
+                                        }
+                                    }
+                                    board = new Board(source, score);
+                                    break;
+                                }
+                                else{
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            case Side.WEST -> {
+                for (int i = 0; i < len; i++) {
+                    boolean[] mergeable = new boolean[len];
+                    Arrays.fill(mergeable, true);
+                    for (int j = 0; j < len; j++) {
+                        Tile t = board.tile(j, i);
+                        if (t != null){
+                            for (int k = j - 1; k >= 0; k--) {
+                                Tile cur_tile = board.tile(k, i);
+                                if (cur_tile == null){
+                                    board.move(k, i, t);
+                                    changed = true;
+                                    t = board.tile(k, i);
+                                }
+                                else if (cur_tile.value() == t.value()){
+                                    board.move(k, i, t);
+                                    changed = true;
+                                    this.score += board.tile(k, i).value();
+                                    Tile null_tile = Tile.create(0, k + 1, i);
+                                    board.addTile(null_tile);
+                                    int[][] source = new int[len][len];
+                                    mergeable[k] = false;
+                                    for (int c = 0; c < len; ++c){
+                                        for (int r = len - 1; r >= 0; --r){
+                                            Tile cur = board.tile(r, c);
+                                            if (cur == null){
+                                                source[len - c - 1][r] = 0;
+                                            }
+                                            else{
+                                                source[len - c - 1][r] = cur.value();
+                                            }
+                                        }
+                                    }
+                                    board = new Board(source, score);
+                                    break;
+                                }
+                                else{
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            case Side.NORTH -> {
+                for (int i = 0; i < len; i++) {
+                    boolean[] mergeable = new boolean[len];
+                    Arrays.fill(mergeable, true);
+                    for (int j = len - 1; j >= 0; j--) {
+                        Tile t = board.tile(i, j);
+                        if (t != null){
+                            for (int k = j + 1; k < len; k++) {
+                                Tile cur_tile = board.tile(i, k);
+                                if (cur_tile == null){
+                                    board.move(i, k, t);
+                                    changed = true;
+                                    t = board.tile(i, k);
+                                }
+                                else if (cur_tile.value() == t.value() && mergeable[k]){
+                                    this.score += 2 * t.value();
+                                    board.move(i, k, t);
+                                    changed = true;
+                                    Tile null_tile = Tile.create(0, i, k - 1);
+                                    board.addTile(null_tile);
+                                    int[][] source = new int[len][len];
+                                    mergeable[k] = false;
+                                    for (int c = 0; c < len; ++c){
+                                        for (int r = len - 1; r >= 0; --r){
+                                            Tile cur = board.tile(r, c);
+                                            if (cur == null){
+                                                source[len - c - 1][r] = 0;
+                                            }
+                                            else{
+                                                source[len - c - 1][r] = cur.value();
+                                            }
+                                        }
+                                    }
+                                    board = new Board(source, score);
+                                    break;
+                                }
+                                else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            case Side.SOUTH -> {
+                for (int i = 0; i < len; i++) {
+                    boolean[] mergeable = new boolean[len];
+                    Arrays.fill(mergeable, true);
+                    for (int j = 0; j < len; j++) {
+                        Tile t = board.tile(i, j);
+                        if (t != null){
+                            for (int k = j - 1; k >= 0; k--) {
+                                Tile cur_tile = board.tile(i, k);
+                                if (cur_tile == null){
+                                    board.move(i, k, t);
+                                    changed = true;
+                                    t = board.tile(i, k);
+                                }
+                                else if (cur_tile.value() == t.value()){
+                                    board.move(i, k, t);
+                                    changed = true;
+                                    this.score += board.tile(i, k).value();
+                                    Tile null_tile = Tile.create(0, i, k + 1);
+                                    board.addTile(null_tile);
+                                    int[][] source = new int[len][len];
+                                    mergeable[k] = false;
+                                    for (int c = 0; c < len; ++c){
+                                        for (int r = len - 1; r >= 0; --r){
+                                            Tile cur = board.tile(r, c);
+                                            if (cur == null){
+                                                source[len - c - 1][r] = 0;
+                                            }
+                                            else{
+                                                source[len - c - 1][r] = cur.value();
+                                            }
+                                        }
+                                    }
+                                    board = new Board(source, score);
+                                    break;
+                                }
+                                else{
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         checkGameOver();
         if (changed) {
