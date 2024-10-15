@@ -131,7 +131,7 @@ public class Model extends Observable {
                                     changed = true;
                                     t = this.board.tile(k, i);
                                 }
-                                else if (cur_tile.value() == t.value()){
+                                else if (cur_tile.value() == t.value() && mergeable[k]){
                                     this.board.move(k, i, t);
                                     changed = true;
                                     this.score += this.board.tile(k, i).value();
@@ -175,7 +175,7 @@ public class Model extends Observable {
                                     changed = true;
                                     t = this.board.tile(k, i);
                                 }
-                                else if (cur_tile.value() == t.value()){
+                                else if (cur_tile.value() == t.value() && mergeable[k]){
                                     this.board.move(k, i, t);
                                     changed = true;
                                     this.score += this.board.tile(k, i).value();
@@ -263,7 +263,7 @@ public class Model extends Observable {
                                     changed = true;
                                     t = this.board.tile(i, k);
                                 }
-                                else if (cur_tile.value() == t.value()){
+                                else if (cur_tile.value() == t.value() && mergeable[k]){
                                     this.board.move(i, k, t);
                                     changed = true;
                                     this.score += this.board.tile(i, k).value();
