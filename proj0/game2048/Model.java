@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @author TODO: Haolong
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -138,6 +138,14 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        int len = b.size();
+        for (int i = 0; i < len; ++i){
+            for (int j = 0; j < len; ++j){
+                if (b.tile(i, j) == null){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -148,6 +156,17 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        int len = b.size();
+        for (int i = 0; i < len; ++i){
+            for (int j = 0; j < len; ++j){
+                if (b.tile(i, j) == null){
+                    continue;
+                }
+                if (b.tile(i, j).value() == MAX_PIECE){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +178,27 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if(emptySpaceExists(b)) {
+            return true;
+        }
+        int len = b.size();
+        for (int i = 0; i < len; ++i){
+            int row = b.tile(0, i).value();
+            int col = b.tile(i, 0).value();
+            for (int j = 0; j < len; ++j){
+                if (i == j && i == 0){
+                    continue;
+                }
+                if (b.tile(j, i).value() == row && j != 0){ // testing a row
+                    return true;
+                }
+                row = b.tile(j, i).value();
+                if (b.tile(i, j).value() == col && j != 0){ // testing a column
+                    return true;
+                }
+                col = b.tile(i, j).value();
+            }
+        }
         return false;
     }
 
