@@ -122,26 +122,26 @@ public class Model extends Observable {
                     boolean[] mergeable = new boolean[len];
                     Arrays.fill(mergeable, true);
                     for (int j = (len - 1); j >= 0; j--) {
-                        Tile t = board.tile(j, i); // j represents column, i represents row
+                        Tile t = this.board.tile(j, i); // j represents column, i represents row
                         if (t != null){
                             for (int k = j + 1; k < len; k++) {
-                                Tile cur_tile = board.tile(k, i);
+                                Tile cur_tile = this.board.tile(k, i);
                                 if (cur_tile == null){
-                                    board.move(k, i, t);
+                                    this.board.move(k, i, t);
                                     changed = true;
-                                    t = board.tile(k, i);
+                                    t = this.board.tile(k, i);
                                 }
                                 else if (cur_tile.value() == t.value()){
-                                    board.move(k, i, t);
+                                    this.board.move(k, i, t);
                                     changed = true;
-                                    this.score += board.tile(k, i).value();
+                                    this.score += this.board.tile(k, i).value();
                                     Tile null_tile = Tile.create(0, k - 1, i);
-                                    board.addTile(null_tile);
+                                    this.board.addTile(null_tile);
                                     int[][] source = new int[len][len];
                                     mergeable[k] = false;
                                     for (int c = 0; c < len; ++c){
                                         for (int r = len - 1; r >= 0; --r){
-                                            Tile cur = board.tile(r, c);
+                                            Tile cur = this.board.tile(r, c);
                                             if (cur == null){
                                                 source[len - c - 1][r] = 0;
                                             }
@@ -150,7 +150,7 @@ public class Model extends Observable {
                                             }
                                         }
                                     }
-                                    board = new Board(source, score);
+                                    this.board = new Board(source, this.score);
                                     break;
                                 }
                                 else{
@@ -166,26 +166,26 @@ public class Model extends Observable {
                     boolean[] mergeable = new boolean[len];
                     Arrays.fill(mergeable, true);
                     for (int j = 0; j < len; j++) {
-                        Tile t = board.tile(j, i);
+                        Tile t = this.board.tile(j, i);
                         if (t != null){
                             for (int k = j - 1; k >= 0; k--) {
-                                Tile cur_tile = board.tile(k, i);
+                                Tile cur_tile = this.board.tile(k, i);
                                 if (cur_tile == null){
-                                    board.move(k, i, t);
+                                    this.board.move(k, i, t);
                                     changed = true;
-                                    t = board.tile(k, i);
+                                    t = this.board.tile(k, i);
                                 }
                                 else if (cur_tile.value() == t.value()){
-                                    board.move(k, i, t);
+                                    this.board.move(k, i, t);
                                     changed = true;
-                                    this.score += board.tile(k, i).value();
+                                    this.score += this.board.tile(k, i).value();
                                     Tile null_tile = Tile.create(0, k + 1, i);
-                                    board.addTile(null_tile);
+                                    this.board.addTile(null_tile);
                                     int[][] source = new int[len][len];
                                     mergeable[k] = false;
                                     for (int c = 0; c < len; ++c){
                                         for (int r = len - 1; r >= 0; --r){
-                                            Tile cur = board.tile(r, c);
+                                            Tile cur = this.board.tile(r, c);
                                             if (cur == null){
                                                 source[len - c - 1][r] = 0;
                                             }
@@ -194,7 +194,7 @@ public class Model extends Observable {
                                             }
                                         }
                                     }
-                                    board = new Board(source, score);
+                                    this.board = new Board(source, this.score);
                                     break;
                                 }
                                 else{
@@ -210,26 +210,26 @@ public class Model extends Observable {
                     boolean[] mergeable = new boolean[len];
                     Arrays.fill(mergeable, true);
                     for (int j = len - 1; j >= 0; j--) {
-                        Tile t = board.tile(i, j);
+                        Tile t = this.board.tile(i, j);
                         if (t != null){
                             for (int k = j + 1; k < len; k++) {
-                                Tile cur_tile = board.tile(i, k);
+                                Tile cur_tile = this.board.tile(i, k);
                                 if (cur_tile == null){
-                                    board.move(i, k, t);
+                                    this.board.move(i, k, t);
                                     changed = true;
-                                    t = board.tile(i, k);
+                                    t = this.board.tile(i, k);
                                 }
                                 else if (cur_tile.value() == t.value() && mergeable[k]){
                                     this.score += 2 * t.value();
-                                    board.move(i, k, t);
+                                    this.board.move(i, k, t);
                                     changed = true;
                                     Tile null_tile = Tile.create(0, i, k - 1);
-                                    board.addTile(null_tile);
+                                    this.board.addTile(null_tile);
                                     int[][] source = new int[len][len];
                                     mergeable[k] = false;
                                     for (int c = 0; c < len; ++c){
                                         for (int r = len - 1; r >= 0; --r){
-                                            Tile cur = board.tile(r, c);
+                                            Tile cur = this.board.tile(r, c);
                                             if (cur == null){
                                                 source[len - c - 1][r] = 0;
                                             }
@@ -238,7 +238,7 @@ public class Model extends Observable {
                                             }
                                         }
                                     }
-                                    board = new Board(source, score);
+                                    this.board = new Board(source, this.score);
                                     break;
                                 }
                                 else {
@@ -254,26 +254,26 @@ public class Model extends Observable {
                     boolean[] mergeable = new boolean[len];
                     Arrays.fill(mergeable, true);
                     for (int j = 0; j < len; j++) {
-                        Tile t = board.tile(i, j);
+                        Tile t = this.board.tile(i, j);
                         if (t != null){
                             for (int k = j - 1; k >= 0; k--) {
-                                Tile cur_tile = board.tile(i, k);
+                                Tile cur_tile = this.board.tile(i, k);
                                 if (cur_tile == null){
-                                    board.move(i, k, t);
+                                    this.board.move(i, k, t);
                                     changed = true;
-                                    t = board.tile(i, k);
+                                    t = this.board.tile(i, k);
                                 }
                                 else if (cur_tile.value() == t.value()){
-                                    board.move(i, k, t);
+                                    this.board.move(i, k, t);
                                     changed = true;
-                                    this.score += board.tile(i, k).value();
+                                    this.score += this.board.tile(i, k).value();
                                     Tile null_tile = Tile.create(0, i, k + 1);
-                                    board.addTile(null_tile);
+                                    this.board.addTile(null_tile);
                                     int[][] source = new int[len][len];
                                     mergeable[k] = false;
                                     for (int c = 0; c < len; ++c){
                                         for (int r = len - 1; r >= 0; --r){
-                                            Tile cur = board.tile(r, c);
+                                            Tile cur = this.board.tile(r, c);
                                             if (cur == null){
                                                 source[len - c - 1][r] = 0;
                                             }
@@ -282,7 +282,7 @@ public class Model extends Observable {
                                             }
                                         }
                                     }
-                                    board = new Board(source, score);
+                                    this.board = new Board(source, this.score);
                                     break;
                                 }
                                 else{
