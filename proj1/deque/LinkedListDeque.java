@@ -6,75 +6,64 @@ import java.util.Iterator;
 
 public class LinkedListDeque<Item> implements Deque<Item> {
 
-    private Item[] node;
+    private node sentinel;
     private int size;
-    private Item head;
-    private Item tail;
-    private int MAX_EXCEED_CACHE = 50000;
+    private node head;
+    private node tail;
 
-    public LinkedListDeque() {
-        node = (Item[]) new Object[1];
+    public class node{
+        public node next;
+        public node prev;
+        public Item item;
+    }
+
+    public LinkedListDeque(){
         size = 0;
         head = null;
         tail = null;
+        sentinel = head;
     }
 
-    public Item getRecursive(int index) {
-        return node[index];
-    }
-
-    public Item get(int index) {
-        return node[index];
-    }
-
-    public boolean equals(Object o){
-        if (o instanceof LinkedListDeque){
-            LinkedListDeque other = (LinkedListDeque) o;
-            if (size != other.size) return false;
-            for (int i = 0; i < size; i++){
-                if (!node[i].equals(other.node[i])) return false;
-            }
-            return true;
+    public void printDeque(){
+        sentinel = head;
+        while(head != null){
+            System.out.print(head.item + " ");
+            head = head.next;
         }
-        return false;
-    }
-
-    public void printDeque() {
-        for (int i = 0; i < size; ++i){
-            System.out.print(node[i] + " ");
-        }
-    }
-
-    private void resize(int capacity, int operation){
-        Item[] tmp = (Item[]) new Object[capacity];
-        for (int i = 0; i < size; i++){
-            if (i + operation > -1){
-                tmp[i] = node[i + operation];
-            }
-        }
-        node = tmp;
     }
 
     @Override
     public void addFirst(Item item) {
-        if (size == node.length){
-            resize(node.length * 2, -1);
+        node current = new node();
+        current.next = head;
+        current.prev = null;
+        current.item = item;
+        if (size == 0){
+            head = current;
+            tail = current;
+        }else{
+            head.prev = current;
+            head = current;
         }
-        node[0] = item;
+
         size++;
-        head = node[0];
-        tail = node[size - 1];
     }
 
     @Override
     public void addLast(Item item) {
-        if (size == node.length){
-            resize(node.length * 2, 0);
+        node current = new node();
+        current.prev = tail;
+        current.item = item;
+        current.next = null;
+        if (size == 0){
+            head = current;
+            tail = current;
+        }else{
+            tail.next = current;
+            tail = current;
         }
-        node[size] = item;
+
         size++;
-        tail = node[size-1];
-        head = node[0];
     }
 
     @Override
@@ -92,22 +81,16 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         if (size == 0){
             return null;
         }
-        Item first = head;
-        size--;
-        if (size != 0){
-            if (node.length - size > MAX_EXCEED_CACHE){
-                resize(size, 1);
-            }else{
-                for (int i = 0; i < size; ++i){
-                    node[i] = node[i + 1];
-                }
-            }
-            head = node[0];
-        }
-        else{
+        if (size == 1){
+            node current = head;
             clear();
+            return current.item;
         }
-        return first;
+        node current = head;
+        head = head.next;
+        head.prev = null;
+        size--;
+        return current.item;
     }
 
     @Override
@@ -115,21 +98,16 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         if (size == 0){
             return null;
         }
-        Item last = tail;
-        --size;
-        node[size] = null;
-        if (size > 1){
-            if (node.length - size > MAX_EXCEED_CACHE){
-                resize(size, 0);
-            }
-            if (size != 0){
-                tail = node[size - 1];
-            }
-        }
-        else{
+        if (size == 1){
+            node current = tail;
             clear();
+            return current.item;
         }
-        return last;
+        node current = tail;
+        tail = tail.prev;
+        tail.next = null;
+        size--;
+        return current.item;
     }
 
     @Override
@@ -144,18 +122,12 @@ public class LinkedListDeque<Item> implements Deque<Item> {
 
     @Override
     public Item getFirst() {
-        if (size == 0){
-            return null;
-        }
-        return head;
+        return head.item;
     }
 
     @Override
     public Item getLast() {
-        if (size == 0){
-            return null;
-        }
-        return tail;
+        return tail.item;
     }
 
     @Override
@@ -225,10 +197,9 @@ public class LinkedListDeque<Item> implements Deque<Item> {
 
     @Override
     public void clear() {
-        node = (Item[]) new Object[1];
+        size = 0;
         head = null;
         tail = null;
-        size = 0;
     }
 
     @Override
@@ -262,6 +233,11 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
     @Override
+    public boolean isEmpty() {
+        return size == 0 ? true : false;
+    }
+
+    @Override
     public Iterator<Item> iterator() {
         return null;
     }
@@ -279,13 +255,5 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     @Override
     public Iterator<Item> descendingIterator() {
         return null;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        if (size == 0){
-            return true;
-        }
-        return false;
     }
 }
