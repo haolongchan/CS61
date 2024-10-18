@@ -65,7 +65,7 @@ public class GuitarString {
     public double sample() {
         // TODO: Return the correct thing.
         if (buffer != null) {
-            return buffer.getFirst();
+            return (double) (buffer.getFirst());
         }
         throw new NullPointerException("buffer is null");
     }

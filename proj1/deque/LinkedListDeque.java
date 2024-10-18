@@ -27,10 +27,11 @@ public class LinkedListDeque<Item> implements Deque<Item> {
 
     public void printDeque(){
         sentinel = head;
-        while(head != null){
+        while(sentinel != null){
             System.out.print(head.item + " ");
-            head = head.next;
+            sentinel = head.next;
         }
+        sentinel = head;
     }
 
 //    @Override
@@ -133,6 +134,16 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         tail.next = null;
         size--;
         return current.item;
+    }
+
+    public Item getRecursive(int index) {
+        if (index == 0){
+            Item item = sentinel.item;
+            sentinel = head;
+            return item;
+        }
+        sentinel = sentinel.next;
+        return getRecursive(index - 1);
     }
 
 //    @Override
