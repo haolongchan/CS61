@@ -1,7 +1,7 @@
 package deque;
 
 import java.util.Collection;
-import java.util.Deque;
+//import java.util.Deque;
 import java.util.Iterator;
 
 public class LinkedListDeque<Item> implements Deque<Item> {
@@ -67,16 +67,6 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
     @Override
-    public boolean offerFirst(Item item) {
-        return false;
-    }
-
-    @Override
-    public boolean offerLast(Item item) {
-        return false;
-    }
-
-    @Override
     public Item removeFirst() {
         if (size == 0){
             return null;
@@ -111,16 +101,6 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
     @Override
-    public Item pollFirst() {
-        return null;
-    }
-
-    @Override
-    public Item pollLast() {
-        return null;
-    }
-
-    @Override
     public Item getFirst() {
         return head.item;
     }
@@ -131,71 +111,6 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
     @Override
-    public Item peekFirst() {
-        return null;
-    }
-
-    @Override
-    public Item peekLast() {
-        return null;
-    }
-
-    @Override
-    public boolean removeFirstOccurrence(Object o) {
-        return false;
-    }
-
-    @Override
-    public boolean removeLastOccurrence(Object o) {
-        return false;
-    }
-
-    @Override
-    public boolean add(Item item) {
-        return false;
-    }
-
-    @Override
-    public boolean offer(Item item) {
-        return false;
-    }
-
-    @Override
-    public Item remove() {
-        return null;
-    }
-
-    @Override
-    public Item poll() {
-        return null;
-    }
-
-    @Override
-    public Item element() {
-        return null;
-    }
-
-    @Override
-    public Item peek() {
-        return null;
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends Item> c) {
-        return false;
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        return false;
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        return false;
-    }
-
-    @Override
     public void clear() {
         size = 0;
         head = null;
@@ -203,57 +118,8 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
     @Override
-    public void push(Item item) {
-
-    }
-
-    @Override
-    public Item pop() {
-        return null;
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        return false;
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        return false;
-    }
-
-    @Override
-    public boolean contains(Object o) {
-        return false;
-    }
-
-    @Override
     public int size() {
         return size;
     }
 
-    @Override
-    public boolean isEmpty() {
-        return size == 0 ? true : false;
-    }
-
-    @Override
-    public Iterator<Item> iterator() {
-        return null;
-    }
-
-    @Override
-    public Object[] toArray() {
-        return new Object[0];
-    }
-
-    @Override
-    public <T> T[] toArray(T[] a) {
-        return null;
-    }
-
-    @Override
-    public Iterator<Item> descendingIterator() {
-        return null;
-    }
 }
