@@ -9,7 +9,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
     private int size;
     private Item head;
     private Item tail;
-    private int MAX_EXCEED_CACHE = 50;
+    private int MAX_EXCEED_CACHE = 1;
 
     public ArrayDeque() {
         node = (Item[]) new Object[8];
@@ -27,8 +27,8 @@ public class ArrayDeque<Item> implements Deque<Item> {
     }
 
     public boolean equals(Object o){
-        if (o instanceof ArrayDeque){
-            ArrayDeque other = (ArrayDeque) o;
+        if (o instanceof ArrayDeque<?>){
+            ArrayDeque<?> other = (ArrayDeque<?>) o;
             if (size != other.size) return false;
             for (int i = 0; i < size; i++){
                 if (!node[i].equals(other.node[i])) return false;
@@ -47,9 +47,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
     private void resize(int capacity, int operation){
         Item[] tmp = (Item[]) new Object[capacity];
         for (int i = 0; i < size; i++){
-            if (i + operation > -1){
-                tmp[i] = node[i + operation];
-            }
+            tmp[i] = node[(i + operation + node.length) % node.length];
         }
         node = tmp;
     }
@@ -94,13 +92,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         Item first = head;
         size--;
         if (size != 0){
-            if (node.length - size > MAX_EXCEED_CACHE){
-                resize(size, 1);
-            }else{
-                for (int i = 0; i < size; ++i){
-                    node[i] = node[i + 1];
-                }
-            }
+            resize(size, 1);
             head = node[0];
         }
         else{
@@ -118,12 +110,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         --size;
         node[size] = null;
         if (size > 1){
-            if (node.length - size > MAX_EXCEED_CACHE){
-                resize(size, 0);
-            }
-            if (size != 0){
-                tail = node[size - 1];
-            }
+            resize(size, 0);
         }
         else{
             clear();
@@ -225,9 +212,9 @@ public class ArrayDeque<Item> implements Deque<Item> {
     @Override
     public void clear() {
         node = (Item[]) new Object[8];
+        size = 0;
         head = null;
         tail = null;
-        size = 0;
     }
 
     @Override
