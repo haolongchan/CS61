@@ -43,7 +43,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
 
 //        @Override
         public boolean hasNext() {
-            return current != null;
+            return index < size;
         }
 
 //        @Override
