@@ -3,6 +3,7 @@ package deque;
 import java.util.Collection;
 //import java.util.Deque;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class ArrayDeque<Item> implements Deque<Item> {
     public Item[] node;
@@ -21,10 +22,41 @@ public class ArrayDeque<Item> implements Deque<Item> {
         return node[index];
     }
 
+    @Override
     public Item get(int index) {
         return node[index];
     }
 
+    @Override
+    public Iterator<Item> iterator() {
+        return new myIterator();
+    }
+
+    private class myIterator implements Iterator<Item> {
+        private Item current;
+        private int index;
+
+        myIterator() {
+            current = head;
+            index = 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return current != null;
+        }
+
+        @Override
+        public Item next() {
+            if (!hasNext()) throw new NoSuchElementException();
+            Item item = current;
+            current = node[index + 1];
+            index++;
+            return item;
+        }
+    }
+
+    @Override
     public boolean equals(Object o){
         if (o instanceof ArrayDeque<?>){
             ArrayDeque<?> other = (ArrayDeque<?>) o;

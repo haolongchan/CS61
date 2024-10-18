@@ -3,6 +3,7 @@ package deque;
 import java.util.Collection;
 //import java.util.Deque;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class LinkedListDeque<Item> implements Deque<Item> {
 
@@ -29,6 +30,40 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         while(head != null){
             System.out.print(head.item + " ");
             head = head.next;
+        }
+    }
+
+    @Override
+    public Item get(int index) {
+        Iterator<Item> it = iterator();
+        for (int i = 0; i < index; i++) {
+            it.next();
+        }
+        return it.next();
+    }
+
+    @Override
+    public Iterator<Item> iterator() {
+        return new myIterator();
+    }
+
+    private class myIterator implements Iterator<Item>{
+        private node current;
+        public myIterator(){
+            current = head;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return current != null;
+        }
+
+        @Override
+        public Item next() {
+            if (!hasNext()) throw new NoSuchElementException();
+            Item item = current.item;
+            current = current.next;
+            return item;
         }
     }
 
