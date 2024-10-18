@@ -33,7 +33,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         }
     }
 
-    @Override
+//    @Override
     public Item get(int index) {
         Iterator<Item> it = iterator();
         for (int i = 0; i < index; i++) {
@@ -42,7 +42,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         return it.next();
     }
 
-    @Override
+//    @Override
     public Iterator<Item> iterator() {
         return new myIterator();
     }
@@ -53,12 +53,12 @@ public class LinkedListDeque<Item> implements Deque<Item> {
             current = head;
         }
 
-        @Override
+//        @Override
         public boolean hasNext() {
             return current != null;
         }
 
-        @Override
+//        @Override
         public Item next() {
             if (!hasNext()) throw new NoSuchElementException();
             Item item = current.item;
@@ -67,7 +67,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         }
     }
 
-    @Override
+//    @Override
     public void addFirst(Item item) {
         node current = new node();
         current.next = head;
@@ -84,7 +84,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         size++;
     }
 
-    @Override
+//    @Override
     public void addLast(Item item) {
         node current = new node();
         current.prev = tail;
@@ -101,7 +101,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         size++;
     }
 
-    @Override
+//    @Override
     public Item removeFirst() {
         if (size == 0){
             return null;
@@ -118,7 +118,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         return current.item;
     }
 
-    @Override
+//    @Override
     public Item removeLast() {
         if (size == 0){
             return null;
@@ -135,24 +135,24 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         return current.item;
     }
 
-    @Override
+//    @Override
     public Item getFirst() {
         return head.item;
     }
 
-    @Override
+//    @Override
     public Item getLast() {
         return tail.item;
     }
 
-    @Override
+//    @Override
     public void clear() {
         size = 0;
         head = null;
         tail = null;
     }
 
-    @Override
+//    @Override
     public int size() {
         return size;
     }

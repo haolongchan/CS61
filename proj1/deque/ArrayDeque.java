@@ -22,12 +22,12 @@ public class ArrayDeque<Item> implements Deque<Item> {
         return node[index];
     }
 
-    @Override
+//    @Override
     public Item get(int index) {
         return node[index];
     }
 
-    @Override
+//    @Override
     public Iterator<Item> iterator() {
         return new myIterator();
     }
@@ -41,12 +41,12 @@ public class ArrayDeque<Item> implements Deque<Item> {
             index = 0;
         }
 
-        @Override
+//        @Override
         public boolean hasNext() {
             return current != null;
         }
 
-        @Override
+//        @Override
         public Item next() {
             if (!hasNext()) throw new NoSuchElementException();
             Item item = current;
@@ -56,7 +56,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         }
     }
 
-    @Override
+//    @Override
     public boolean equals(Object o){
         if (o instanceof ArrayDeque<?>){
             ArrayDeque<?> other = (ArrayDeque<?>) o;
@@ -87,7 +87,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         node = tmp;
     }
 
-    @Override
+//    @Override
     public void addFirst(Item item) {
         if (size == node.length){
             resize(node.length * 2, -1);
@@ -98,7 +98,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         tail = node[size - 1];
     }
 
-    @Override
+//    @Override
     public void addLast(Item item) {
         if (size == node.length){
             resize(node.length * 2, 0);
@@ -109,7 +109,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         head = node[0];
     }
 
-    @Override
+//    @Override
     public Item removeFirst() {
         if (size == 0){
             return null;
@@ -126,7 +126,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         return first;
     }
 
-    @Override
+//    @Override
     public Item removeLast() {
         if (size == 0){
             return null;
@@ -143,7 +143,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         return last;
     }
 
-    @Override
+//    @Override
     public Item getFirst() {
         if (size == 0){
             return null;
@@ -151,7 +151,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         return head;
     }
 
-    @Override
+//    @Override
     public Item getLast() {
         if (size == 0){
             return null;
@@ -159,7 +159,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         return tail;
     }
 
-    @Override
+//    @Override
     public void clear() {
         node = (Item[]) new Object[8];
         size = 0;
@@ -167,7 +167,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
         tail = null;
     }
 
-    @Override
+//    @Override
     public int size() {
         return size;
     }
