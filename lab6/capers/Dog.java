@@ -10,8 +10,9 @@ import static capers.Utils.*;
 public class Dog { // TODO
 
     /** Folder that dogs live in. */
-    static final File DOG_FOLDER = null; // TODO (hint: look at the `join`
-                                         //      function in Utils)
+    static final File CWD = new File(System.getProperty("user.dir"));
+    static final File DOG_FOLDER = join(CWD.getPath(), ".capers", "dogs"); // TODO (hint: look at the `join`
+    static final File DOG_FILE = join(DOG_FOLDER, "dogs.txt");
 
     /** Age of dog. */
     private int age;
@@ -27,9 +28,9 @@ public class Dog { // TODO
      * @param age Age of dog
      */
     public Dog(String name, String breed, int age) {
-        this.age = age;
-        this.breed = breed;
         this.name = name;
+        this.breed = breed;
+        this.age = age;
     }
 
     /**
@@ -40,7 +41,33 @@ public class Dog { // TODO
      */
     public static Dog fromFile(String name) {
         // TODO (hint: look at the Utils file)
-        return null;
+        String data = readContentsAsString(DOG_FILE);
+        int sz = data.length();
+        int index = data.lastIndexOf(name);
+        Dog ret = new Dog("", "", 0);
+        if (index == -1){
+            return ret;
+        }
+        while(data.charAt(index) != ' '){
+            ret.name += data.charAt(index);
+            index++;
+        }
+        index++;
+        while(data.charAt(index + 1) > '9' || data.charAt(index + 1) < '0'){
+            ret.breed += data.charAt(index);
+            index++;
+        }
+        index++;
+        String num = "";
+        while(data.charAt(index) >= '0' && data.charAt(index) <= '9'){
+            num += data.charAt(index);
+            index++;
+            if (index == sz){
+                break;
+            }
+        }
+        ret.age = Integer.parseInt(num);
+        return ret;
     }
 
     /**
@@ -48,7 +75,8 @@ public class Dog { // TODO
      */
     public void haveBirthday() {
         age += 1;
-        System.out.println(toString());
+        String output = toString();
+        System.out.println(output);
         System.out.println("Happy birthday! Woof! Woof!");
     }
 
@@ -57,6 +85,7 @@ public class Dog { // TODO
      */
     public void saveDog() {
         // TODO (hint: don't forget dog names are unique)
+        writeContents(DOG_FILE, this.name, " ", this.breed, " ", Integer.toString(this.age), "\n");
     }
 
     @Override

@@ -1,7 +1,8 @@
 package capers;
 
 import java.io.File;
-import static capers.Utils.*;
+import java.io.IOException;
+
 
 /** A repository for Capers 
  * @author TODO
@@ -18,8 +19,9 @@ public class CapersRepository {
     static final File CWD = new File(System.getProperty("user.dir"));
 
     /** Main metadata folder. */
-    static final File CAPERS_FOLDER = null; // TODO Hint: look at the `join`
+    static final File CAPERS_FOLDER = Utils.join(CWD.getPath(), ".capers"); // TODO Hint: look at the `join`
                                             //      function in Utils
+    static final File DOG_STORY = Utils.join(CAPERS_FOLDER, "story.txt");
 
     /**
      * Does required filesystem operations to allow for persistence.
@@ -30,8 +32,13 @@ public class CapersRepository {
      *    - dogs/ -- folder containing all of the persistent data for dogs
      *    - story -- file containing the current story
      */
-    public static void setupPersistence() {
+    public static void setupPersistence() throws IOException {
         // TODO
+        CAPERS_FOLDER.mkdir();
+        Dog.DOG_FOLDER.mkdir();
+        boolean a = Dog.DOG_FILE.createNewFile();
+        boolean b = DOG_STORY.createNewFile();
+//        Utils.writeContents(Dog.DOG_FILE, null);
     }
 
     /**
@@ -40,7 +47,10 @@ public class CapersRepository {
      * @param text String of the text to be appended to the story
      */
     public static void writeStory(String text) {
-        // TODO
+        // TODO: print to console?
+        Utils.writeContents(DOG_STORY, text, "\n");
+        String story = Utils.readContentsAsString(DOG_STORY);
+        System.out.print(story);
     }
 
     /**
@@ -50,6 +60,9 @@ public class CapersRepository {
      */
     public static void makeDog(String name, String breed, int age) {
         // TODO
+        Dog dog = new Dog(name, breed, age);
+        dog.saveDog();
+        System.out.println(dog.toString());
     }
 
     /**
@@ -60,5 +73,8 @@ public class CapersRepository {
      */
     public static void celebrateBirthday(String name) {
         // TODO
+        Dog dog = Dog.fromFile(name);
+        dog.haveBirthday();
+        dog.saveDog();
     }
 }
