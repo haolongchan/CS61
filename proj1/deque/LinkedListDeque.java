@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class LinkedListDeque<Item> implements Deque<Item> {
+public class LinkedListDeque<T> implements Deque<T> {
 
     private node sentinel;
     private int size;
@@ -15,7 +15,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     public class node{
         public node next;
         public node prev;
-        public Item item;
+        public T item;
     }
 
     public LinkedListDeque(){
@@ -35,8 +35,8 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public Item get(int index) {
-        Iterator<Item> it = iterator();
+    public T get(int index) {
+        Iterator<T> it = iterator();
         for (int i = 0; i < index; i++) {
             it.next();
         }
@@ -44,11 +44,11 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public Iterator<Item> iterator() {
+    public Iterator<T> iterator() {
         return new myIterator();
     }
 
-    private class myIterator implements Iterator<Item>{
+    private class myIterator implements Iterator<T>{
         private node current;
         public myIterator(){
             current = head;
@@ -60,16 +60,16 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         }
 
 //        @Override
-        public Item next() {
+        public T next() {
             if (!hasNext()) throw new NoSuchElementException();
-            Item item = current.item;
+            T item = current.item;
             current = current.next;
             return item;
         }
     }
 
 //    @Override
-    public void addFirst(Item item) {
+    public void addFirst(T item) {
         node current = new node();
         current.next = null;
         current.prev = null;
@@ -87,7 +87,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public void addLast(Item item) {
+    public void addLast(T item) {
         node current = new node();
         current.item = item;
         current.prev = null;
@@ -105,7 +105,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public Item removeFirst() {
+    public T removeFirst() {
         if (size == 0){
             return null;
         }
@@ -122,7 +122,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public Item removeLast() {
+    public T removeLast() {
         if (size == 0){
             return null;
         }
@@ -138,9 +138,9 @@ public class LinkedListDeque<Item> implements Deque<Item> {
         return current.item;
     }
 
-    public Item getRecursive(int index) {
+    public T getRecursive(int index) {
         if (index == 0){
-            Item item = sentinel.item;
+            T item = sentinel.item;
             sentinel = head;
             return item;
         }
@@ -149,12 +149,12 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public Item getFirst() {
+    public T getFirst() {
         return head.item;
     }
 
 //    @Override
-    public Item getLast() {
+    public T getLast() {
         return tail.item;
     }
 

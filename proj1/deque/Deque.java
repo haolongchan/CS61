@@ -2,11 +2,11 @@ package deque;
 
 import java.util.Iterator;
 
-public interface Deque<Item> {
-    public void addFirst(Item item);
-    public void addLast(Item item);
-    public Item removeFirst();
-    public Item removeLast();
+public interface Deque<T> {
+    public void addFirst(T item);
+    public void addLast(T item);
+    public T removeFirst();
+    public T removeLast();
 
     default boolean isEmpty() {
         return (size() == 0);
@@ -14,11 +14,11 @@ public interface Deque<Item> {
 
     public int size();
     public void clear();
-    public Item getFirst();
-    public Item getLast();
+    public T getFirst();
+    public T getLast();
     public void printDeque();
-    public Item get(int index);
-    public Iterator<Item> iterator();
+    public T get(int index);
+    public Iterator<T> iterator();
     public boolean equals(Object o);
 
 }

@@ -5,35 +5,35 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class ArrayDeque<Item> implements Deque<Item> {
-    public Item[] node;
+public class ArrayDeque<T> implements Deque<T> {
+    public T[] node;
     private int size;
-    private Item head;
-    private Item tail;
+    private T head;
+    private T tail;
 
     public ArrayDeque() {
-        node = (Item[]) new Object[8];
+        node = (T[]) new Object[8];
         size = 0;
         head = null;
         tail = null;
     }
 
-    public Item getRecursive(int index) {
+    public T getRecursive(int index) {
         return node[index];
     }
 
 //    @Override
-    public Item get(int index) {
+    public T get(int index) {
         return node[index];
     }
 
 //    @Override
-    public Iterator<Item> iterator() {
+    public Iterator<T> iterator() {
         return new myIterator();
     }
 
-    private class myIterator implements Iterator<Item> {
-        private Item current;
+    private class myIterator implements Iterator<T> {
+        private T current;
         private int index;
 
         myIterator() {
@@ -47,9 +47,9 @@ public class ArrayDeque<Item> implements Deque<Item> {
         }
 
 //        @Override
-        public Item next() {
+        public T next() {
             if (!hasNext()) throw new NoSuchElementException();
-            Item item = current;
+            T item = current;
             current = node[index + 1];
             index++;
             return item;
@@ -76,11 +76,11 @@ public class ArrayDeque<Item> implements Deque<Item> {
     }
 
     public void outside_resize(int capacity) {
-        Item[] temp = (Item[]) new Object[capacity];
+        T[] temp = (T[]) new Object[capacity];
     }
 
     private void resize(int capacity, int operation){
-        Item[] tmp = (Item[]) new Object[capacity];
+        T[] tmp = (T[]) new Object[capacity];
         for (int i = 0; i < size; i++){
             tmp[i] = node[(i + operation + node.length) % node.length];
         }
@@ -88,7 +88,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public void addFirst(Item item) {
+    public void addFirst(T item) {
         if (size == node.length){
             resize(node.length * 2, -1);
         }
@@ -99,7 +99,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public void addLast(Item item) {
+    public void addLast(T item) {
         if (size == node.length){
             resize(node.length * 2, 0);
         }
@@ -110,11 +110,11 @@ public class ArrayDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public Item removeFirst() {
+    public T removeFirst() {
         if (size == 0){
             return null;
         }
-        Item first = head;
+        T first = head;
         size--;
         if (size != 0){
             resize(size, 1);
@@ -127,15 +127,16 @@ public class ArrayDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public Item removeLast() {
+    public T removeLast() {
         if (size == 0){
             return null;
         }
-        Item last = tail;
+        T last = tail;
         --size;
         node[size] = null;
         if (size > 1){
             resize(size, 0);
+            tail = node[size - 1];
         }
         else{
             clear();
@@ -144,7 +145,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public Item getFirst() {
+    public T getFirst() {
         if (size == 0){
             return null;
         }
@@ -152,7 +153,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
     }
 
 //    @Override
-    public Item getLast() {
+    public T getLast() {
         if (size == 0){
             return null;
         }
@@ -161,7 +162,7 @@ public class ArrayDeque<Item> implements Deque<Item> {
 
 //    @Override
     public void clear() {
-        node = (Item[]) new Object[8];
+        node = (T[]) new Object[8];
         size = 0;
         head = null;
         tail = null;
