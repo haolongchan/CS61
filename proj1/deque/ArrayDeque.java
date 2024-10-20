@@ -29,14 +29,14 @@ public class ArrayDeque<T> implements Deque<T> {
 
 //    @Override
     public Iterator<T> iterator() {
-        return new myIterator();
+        return new MyIterator();
     }
 
-    private class myIterator implements Iterator<T> {
+    private class MyIterator implements Iterator<T> {
         private T current;
         private int index;
 
-        myIterator() {
+        MyIterator() {
             current = head;
             index = 0;
         }
@@ -48,7 +48,9 @@ public class ArrayDeque<T> implements Deque<T> {
 
 //        @Override
         public T next() {
-            if (!hasNext()) throw new NoSuchElementException();
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
             T item = current;
             current = node[index + 1];
             index++;
@@ -57,11 +59,13 @@ public class ArrayDeque<T> implements Deque<T> {
     }
 
 //    @Override
-    public boolean equals(Object o){
-        if (o instanceof ArrayDeque<?>){
+    public boolean equals(Object o) {
+        if (o instanceof ArrayDeque<?>) {
             ArrayDeque<?> other = (ArrayDeque<?>) o;
-            if (size != other.size) return false;
-            for (int i = 0; i < size; i++){
+            if (size != other.size) {
+                return false;
+            }
+            for (int i = 0; i < size; i++) {
                 if (!node[i].equals(other.node[i])) return false;
             }
             return true;
@@ -70,18 +74,14 @@ public class ArrayDeque<T> implements Deque<T> {
     }
 
     public void printDeque() {
-        for (int i = 0; i < size; ++i){
+        for (int i = 0; i < size; ++i) {
             System.out.print(node[i] + " ");
         }
     }
 
-    public void outside_resize(int capacity) {
-        T[] temp = (T[]) new Object[capacity];
-    }
-
-    private void resize(int capacity, int operation){
+    private void resize(int capacity, int operation) {
         T[] tmp = (T[]) new Object[capacity];
-        for (int i = 0; i < size; i++){
+        for (int i = 0; i < size; i++) {
             tmp[i] = node[(i + operation + node.length) % node.length];
         }
         node = tmp;
@@ -89,7 +89,7 @@ public class ArrayDeque<T> implements Deque<T> {
 
 //    @Override
     public void addFirst(T item) {
-        if (size == node.length){
+        if (size == node.length) {
             resize(node.length * 2, -1);
         }
         node[0] = item;
@@ -100,12 +100,12 @@ public class ArrayDeque<T> implements Deque<T> {
 
 //    @Override
     public void addLast(T item) {
-        if (size == node.length){
+        if (size == node.length) {
             resize(node.length * 2, 0);
         }
         node[size] = item;
         size++;
-        tail = node[size-1];
+        tail = node[size - 1];
         head = node[0];
     }
 
@@ -116,11 +116,11 @@ public class ArrayDeque<T> implements Deque<T> {
         }
         T first = head;
         size--;
-        if (size != 0){
+        if (size != 0) {
             resize(size, 1);
             head = node[0];
         }
-        else{
+        else {
             clear();
         }
         return first;
@@ -128,17 +128,17 @@ public class ArrayDeque<T> implements Deque<T> {
 
 //    @Override
     public T removeLast() {
-        if (size == 0){
+        if (size == 0) {
             return null;
         }
         T last = tail;
         --size;
         node[size] = null;
-        if (size > 1){
+        if (size > 1) {
             resize(size, 0);
             tail = node[size - 1];
         }
-        else{
+        else {
             clear();
         }
         return last;
@@ -146,7 +146,7 @@ public class ArrayDeque<T> implements Deque<T> {
 
 //    @Override
     public T getFirst() {
-        if (size == 0){
+        if (size == 0) {
             return null;
         }
         return head;
@@ -154,7 +154,7 @@ public class ArrayDeque<T> implements Deque<T> {
 
 //    @Override
     public T getLast() {
-        if (size == 0){
+        if (size == 0) {
             return null;
         }
         return tail;

@@ -1,8 +1,8 @@
 package gh2;
 
 // import deque.ArrayDeque;
- import deque.Deque;
- import deque.LinkedListDeque;
+import deque.Deque;
+import deque.LinkedListDeque;
 
 // import java.util.LinkedList;
 
@@ -35,7 +35,7 @@ public class GuitarString {
         //       are different from each other. It means you should repeatedly call
         //       Math.random() - 0.5 to generate new random numbers for each array index.
         buffer = (Deque<Double>) new LinkedListDeque<Double>();
-        for (int i = 0; i < capacity; ++i){
+        for (int i = 0; i < capacity; ++i) {
             buffer.addLast(Math.random() - 0.5);
         }
     }
