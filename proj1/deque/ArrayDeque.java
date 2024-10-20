@@ -1,6 +1,6 @@
 package deque;
 
-import java.util.Collection;
+//import java.util.Collection;
 //import java.util.Deque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;

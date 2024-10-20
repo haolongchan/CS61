@@ -1,6 +1,6 @@
 package deque;
 
-import java.util.Collection;
+//import java.util.Collection;
 //import java.util.Deque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -12,17 +12,17 @@ public class LinkedListDeque<T> implements Deque<T> {
     private node head;
     private node tail;
 
-    public class node{
-        public node next;
-        public node prev;
-        public T item;
+    private class node{
+        private node next;
+        private node prev;
+        private T item;
     }
 
     public LinkedListDeque(){
         size = 0;
         head = null;
         tail = null;
-        sentinel = head;
+        sentinel = null;
     }
 
     public void printDeque(){
