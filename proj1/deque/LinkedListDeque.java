@@ -28,8 +28,8 @@ public class LinkedListDeque<Item> implements Deque<Item> {
     public void printDeque(){
         sentinel = head;
         while(sentinel != null){
-            System.out.print(head.item + " ");
-            sentinel = head.next;
+            System.out.print(sentinel.item + " ");
+            sentinel = sentinel.next;
         }
         sentinel = head;
     }
@@ -71,7 +71,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
 //    @Override
     public void addFirst(Item item) {
         node current = new node();
-        current.next = head;
+        current.next = null;
         current.prev = null;
         current.item = item;
         if (size == 0){
@@ -79,6 +79,7 @@ public class LinkedListDeque<Item> implements Deque<Item> {
             tail = current;
         }else{
             head.prev = current;
+            current.next = head;
             head = current;
         }
 
@@ -88,14 +89,15 @@ public class LinkedListDeque<Item> implements Deque<Item> {
 //    @Override
     public void addLast(Item item) {
         node current = new node();
-        current.prev = tail;
         current.item = item;
+        current.prev = null;
         current.next = null;
         if (size == 0){
             head = current;
             tail = current;
         }else{
             tail.next = current;
+            current.prev = tail;
             tail = current;
         }
 
@@ -166,6 +168,10 @@ public class LinkedListDeque<Item> implements Deque<Item> {
 //    @Override
     public int size() {
         return size;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
     }
 
 }
