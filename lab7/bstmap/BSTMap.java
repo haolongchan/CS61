@@ -36,19 +36,32 @@ public class BSTMap<K, V> implements Map61B<K, V>{
 
     @Override
     public boolean containsKey(K key) {
-        return get(key) != null;
+        if (this.keys == null) {
+            return false;
+        }
+        int comp = this.keys.toString().compareTo(key.toString());
+        if (comp == 0) {
+            return true;
+        }
+        if (comp < 0) {
+            return this.rson.containsKey(key);
+        }
+        return this.lson.containsKey(key);
     }
 
     @Override
     public V get(K key) {
-        BSTMap<K, V> current = this;
-        while(current.keys != null) {
-            int com = current.keys.toString().compareTo(key.toString());
-            if(com == 0) return current.vals;
-            else if(com < 0) current = current.lson;
-            else current = current.rson;
+        if (this.keys == null) {
+            return null;
         }
-        return null;
+        int comp = this.keys.toString().compareTo(key.toString());
+        if (comp == 0) {
+            return this.vals;
+        }
+        if (comp < 0) {
+            return this.rson.get(key);
+        }
+        return this.lson.get(key);
     }
 
     @Override
@@ -58,16 +71,20 @@ public class BSTMap<K, V> implements Map61B<K, V>{
 
     @Override
     public void put(K key, V value) {
-        BSTMap<K, V> current = this;
-        while(current.keys != null) {
-            int com = current.keys.toString().compareTo(key.toString());
-            if (com > 0) current = current.lson;
-            else if (com < 0) current = current.rson;
+        if (this.keys != null) {
+            int compare = this.keys.toString().compareTo(key.toString());
+            if(compare > 0) {
+                this.lson = new BSTMap<>();
+                this.lson.put(key, value);
+            }
+            else if(compare < 0) {
+                this.rson = new BSTMap<>();
+                this.rson.put(key, value);
+            }
+        } else {
+            this.keys = key;
+            this.vals = value;
         }
-        BSTMap<K, V> temp = new BSTMap<>();
-        temp.keys = key;
-        temp.vals = value;
-        current = temp;
         size++;
     }
 
