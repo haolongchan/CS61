@@ -27,13 +27,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
 
     @Override
     public boolean containsKey(K key) {
-        int index = (key.hashCode() & 0x7fffffff) % buckets.length;
-        for (Node n : buckets[index]) {
-            if (n.key.equals(key)) {
-                return true;
-            }
-        }
-        return false;
+        return get(key) != null;
     }
 
     @Override
@@ -109,12 +103,29 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
 
     @Override
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        int index = (key.hashCode() & 0x7fffffff) % buckets.length;
+        for (Node n : buckets[index]) {
+            if (n.key.equals(key)) {
+                V value = n.value;
+                n.value = null;
+                return value;
+            }
+        }
+        return null;
     }
 
     @Override
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        int index = (key.hashCode() & 0x7fffffff) % buckets.length;
+        for (Node n : buckets[index]) {
+            if (n.key.equals(key)) {
+                if (n.value == value) {
+                    n.value = null;
+                    return value;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
