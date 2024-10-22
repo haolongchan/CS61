@@ -2,6 +2,7 @@ package gitlet;
 
 // TODO: any imports you need here
 
+import java.io.IOException;
 import java.util.Date; // TODO: You'll likely use this in this class
 
 /** Represents a gitlet commit object.
@@ -20,6 +21,7 @@ public class Commit {
      */
 
     /** The message of this Commit. */
+
     private String message;
 
     /* TODO: fill in the rest of this class. */

@@ -1,6 +1,9 @@
 package gitlet;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+
 import static gitlet.Utils.*;
 
 // TODO: any imports you need here
