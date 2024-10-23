@@ -20,16 +20,50 @@ public class Main {
         switch(firstArg) {
             case "init":
                 // TODO: handle the `init` command
+                if (args.length != 1) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+                if (!Repository.setup()) {
+                    System.out.println("A Gitlet version-control system already exists in the current directory.");
+                    System.exit(0);
+                }
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
                 if (args.length != 2) {
                     System.out.println("Incorrect operands.");
+                    System.exit(0);
                 }
+                if (!Repository.addFile(args[1])) {
 
+                    System.exit(0);
+                }
                 break;
             // TODO: FILL THE REST IN
 
+            case "rm":
+                if (args.length != 2) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+                if (!Repository.removeFile(args[1])) {
+                    System.exit(0);
+                }
+                break;
+            case "commit":
+                if (args.length != 2) {
+                    System.out.println("Please enter a commit message.");
+                    System.exit(0);
+                }
+                if (args[1].isBlank()) {
+                    System.out.println("Please enter a commit message.");
+                    System.exit(0);
+                }
+                if (!Repository.PrepareForCommit(args[1])) {
+                    System.exit(0);
+                }
+                break;
 
             default:
                 if (args.length != 0) {
