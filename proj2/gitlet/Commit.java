@@ -33,6 +33,11 @@ public class Commit {
     private static LinkedList<String> refToBlobs = new LinkedList<>();
     public static String parentHash;
     public static String hash;
+    public static LinkedList<String> fileLocation;
+
+    public LinkedList<String> getFileLocation() {
+        return fileLocation;
+    }
 
     public String getMessage() {
         return message;
@@ -44,11 +49,12 @@ public class Commit {
         return refToBlobs;
     }
 
-    public Commit(String message, Date timestamp, LinkedList<String> refToBlobs, String parentHash) {
+    public Commit(String message, Date timestamp, LinkedList<String> refToBlobs, String parentHash, LinkedList<String> fileLocation) {
         this.message = message;
         this.timestamp = timestamp;
         this.refToBlobs = refToBlobs;
         this.parentHash = parentHash;
+        this.fileLocation = fileLocation;
     }
 
     public static String formatDate(Date date) {
@@ -66,15 +72,16 @@ public class Commit {
         message = msg;
         refToBlobs = null;
         parentHash = parent;
-        Repository.createcommitassetup(new Commit(message, timestamp, refToBlobs, parentHash));
+        Repository.createcommitassetup(new Commit(message, timestamp, refToBlobs, parentHash, null));
     }
 
-    public static void add(String msg, String parent, LinkedList<String> refs) {
+    public static void add(String msg, String parent, LinkedList<String>[] refs) {
         message = msg;
         timestamp = new Date();
-        refToBlobs = refs;
+        refToBlobs = refs[0];
+        fileLocation = refs[1];
         parentHash = parent;
-        Repository.createcommits(new Commit(message, timestamp, refToBlobs, parentHash));
+        Repository.createcommits(new Commit(message, timestamp, refToBlobs, parentHash, fileLocation));
     }
 
     /* TODO: fill in the rest of this class. */

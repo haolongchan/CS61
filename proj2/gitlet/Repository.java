@@ -48,21 +48,20 @@ public class Repository {
 //    public static String commitHash = "";
 //    public static String blobHash = "";
 
-    public static Commit head;
-
-
     private static class pseudoCommit {
         static String message;
         static String timestamp;
         static String parentHash;
         static String currentHash;
         static LinkedList<String> RefToBlobs;
-        private pseudoCommit(String msg, String tms, String prtH, String Ha, LinkedList<String> ref) {
+        static LinkedList<String> fileLocation;
+        private pseudoCommit(String msg, String tms, String prtH, String Ha, LinkedList<String> ref, LinkedList<String> loc) {
             message = msg;
             timestamp = tms;
             parentHash = prtH;
             currentHash = Ha;
             RefToBlobs = ref;
+            fileLocation = loc;
         }
     }
 
@@ -105,7 +104,6 @@ public class Repository {
                 System.out.println("File does not exist.");
                 return false;
             }
-            boolean existence = false;
             if (!blobs.exists()) {
                 System.out.println("Not in an initialized Gitlet directory.");
                 return false;
@@ -115,19 +113,17 @@ public class Repository {
 //        byte[] contents = readContents(toadd);
 
             String fileHash = sha1(readContentsAsString(selected));
-            LinkedList<String> addContents = readAddStage();
-            for (String s : addContents) {
+            LinkedList<String>[] addContents = readAddStage();
+
+            for (String s : addContents[0]) {
                 if (s.equals(fileHash)) {
-                    existence = true;
                     return false;
                 }
             }
-            if (!existence) {
-                appendContents(ADDFILE, fileHash, "@");
-                File blob = join(blobs, fileHash);
-                blob.createNewFile();
-                writeObject(blob, readContents(selected));
-            }
+            appendContents(ADDFILE, fileHash, ":", fileName, "@");
+            File blob = join(blobs, fileHash);
+            blob.createNewFile();
+            writeObject(blob, readContents(selected));
             return true;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -146,19 +142,27 @@ public class Repository {
             }
 
             String fileHash = sha1(readContentsAsString(toremove));
-            LinkedList<String> addContents = readAddStage();
+            LinkedList<String>[] addContents = readAddStage();
 
-            for (String s : addContents) {
+            for (String s : addContents[0]) {
                 if (s.equals(fileHash)) {
                     writeContents(ADDFILE, "");
-                    for (String content : addContents) {
-                        if (!content.equals(fileHash)) {
-                            appendContents(ADDFILE, content, "@");
-                        }
-                        else {
-                            appendContents(REMOVEFILE, content, "@");
+                    int size = addContents[1].size();
+                    for (int i = 0; i < size; i++) {
+                        if (addContents[0].get(i).equals(fileHash)) {
+                            appendContents(REMOVEFILE, fileHash, "@");
+                        } else {
+                            appendContents(ADDFILE, addContents[0].get(i), ":", addContents[1].get(i), "@");
                         }
                     }
+//                    for (LinkedList<String> content : addContents) {
+//                        if (!content.equals(fileHash)) {
+//                            appendContents(ADDFILE, content, "@");
+//                        }
+//                        else {
+//                            appendContents(REMOVEFILE, content, "@");
+//                        }
+//                    }
                     return true;
                 }
             }
@@ -182,6 +186,7 @@ public class Repository {
             String parentHash = "";
             String currentHash = "";
             LinkedList<String> RefToBlobs = new LinkedList<>();
+            LinkedList<String> fileLoc = new LinkedList<>();
             int index = -1;
             for (int i = 0; i < size; i++) {
                 if (contents.charAt(i) == '@') {
@@ -213,6 +218,11 @@ public class Repository {
             }
             String tmp = "";
             for (int i = index; i < size; i++) {
+                if (contents.charAt(i) == '!') {
+                    index = i + 1;
+                    tmp = "";
+                    break;
+                }
                 if (contents.charAt(i) == '$') {
                     RefToBlobs.add(tmp);
                     tmp = "";
@@ -221,7 +231,15 @@ public class Repository {
                     tmp += contents.charAt(i);
                 }
             }
-            return new pseudoCommit(message, timestamp, parentHash, currentHash, RefToBlobs);
+            for (int i = index; i < size; i++) {
+                if (contents.charAt(i) == '@') {
+                    fileLoc.add(tmp);
+                    tmp = "";
+                } else {
+                    tmp += contents.charAt(i);
+                }
+            }
+            return new pseudoCommit(message, timestamp, parentHash, currentHash, RefToBlobs, fileLoc);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -310,7 +328,7 @@ public class Repository {
         }
         System.out.println("");
         System.out.println("=== Staged Files ===");
-        LinkedList<String> stagedHash = readAddStage();
+        LinkedList<String> stagedHash = readAddStage()[0];
         List<String> stageName = plainFilenamesIn(CWD);
         size = stageName.size();
         Collections.sort(stageName);
@@ -352,19 +370,38 @@ public class Repository {
 
     }
 
-    public static LinkedList<String> readAddStage() {
-        LinkedList<String> stages = new LinkedList<>();
+    public static LinkedList<String>[] readAddStage() {
+        LinkedList<String>[] stages = new LinkedList[2];
         String content = readContentsAsString(ADDFILE);
         int size = content.length();
         String singleHash = "";
+        String singleName = "";
+        boolean readHash = true;
         for (int i = 0; i < size; i++) {
-            if (content.charAt(i) != '@') {
-                singleHash += content.charAt(i);
+
+            if (readHash) {
+                if (content.charAt(i) != ':') {
+                    singleHash += content.charAt(i);
+                }
+                else {
+                    stages[0].add(singleHash);
+                    singleHash = "";
+                    readHash = false;
+                }
             }
             else {
-                stages.add(singleHash);
-                singleHash = "";
+                if (content.charAt(i) != '@') {
+                    singleName += content.charAt(i);
+                }
+                else {
+                    stages[1].add(singleName);
+                    singleName = "";
+                    readHash = true;
+                }
             }
+
+
+
         }
         return stages;
     }
@@ -391,8 +428,8 @@ public class Repository {
             System.out.println("Not in an initialized Gitlet directory.");
             return false;
         }
-        LinkedList<String> addContents = readAddStage();
-        if (addContents.isEmpty() || readContentsAsString(ADDFILE).length() == 0) {
+        LinkedList<String>[] addContents = readAddStage();
+        if (addContents[0].isEmpty() || readContentsAsString(ADDFILE).length() == 0) {
             System.out.println("No changes added to the commit.");
             return false;
         }
@@ -422,7 +459,7 @@ public class Repository {
                 currentHash = sha1(arg.getMessage(), timestamp, parentHash);
             }
             else {
-                currentHash = sha1(arg.getMessage(), timestamp, arg.getRefToBlobs().toString(), parentHash);
+                currentHash = sha1(arg.getMessage(), timestamp, arg.getRefToBlobs().toString(), parentHash, arg.getFileLocation().toString());
             }
             arg.hash = currentHash;
 //        commitHash = readContentsAsString(INDEXFILE);
@@ -437,6 +474,12 @@ public class Repository {
             if (arg.getRefToBlobs() != null) {
                 for (String blobs : arg.getRefToBlobs()) {
                     appendContents(commitFile, blobs, "$");
+                }
+            }
+            appendContents(commitFile, "!");
+            if (arg.getFileLocation() != null) {
+                for (String location : arg.getFileLocation()) {
+                    appendContents(commitFile, location, "@");
                 }
             }
             writeContents(HEAD, currentHash);
@@ -482,6 +525,79 @@ public class Repository {
             return false;
         }
         return deleteBranch(join(branches, branchName));
+    }
+
+    public static boolean checkoutName(String name) {
+        try {
+            pseudoCommit contents = readCommit(join(commits, readContentsAsString(HEAD))); // fileLocation is merely the file name
+            if (contents.fileLocation == null) {
+                return false;
+            }
+            int size = contents.fileLocation.size();
+            for (int i = 0; i < size; i++) {
+                if (contents.fileLocation.get(i).equals(name)) {
+                    File overwriteFile = join(CWD, contents.fileLocation.get(i));
+                    if (!overwriteFile.exists()) {
+                        overwriteFile.createNewFile();
+                    }
+                    String content = readContentsAsString(join(blobs, contents.RefToBlobs.get(i)));
+                    writeContents(overwriteFile, content);
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean checkoutID(String id, String name) {
+        try {
+            String commitHash = readContentsAsString(HEAD);
+            while (commitHash.length() > 0) {
+                File commitFile = join(commits, commitHash);
+                pseudoCommit contents = readCommit(commitFile);
+                if (contents.currentHash.equals(id)) {
+                    if (contents.fileLocation == null) {
+                        return false;
+                    }
+                    int size = contents.fileLocation.size();
+                    for (int i = 0; i < size; i++) {
+                        if (contents.fileLocation.get(i).equals(name)) {
+                            File overwriteFile = join(CWD, contents.fileLocation.get(i));
+                            if (!overwriteFile.exists()) {
+                                overwriteFile.createNewFile();
+                            }
+                            String content = readContentsAsString(join(blobs, contents.RefToBlobs.get(i)));
+                            writeContents(overwriteFile, content);
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void checkoutBranch(String branchName) {
+        try{
+            List<String> branch = plainFilenamesIn(branches);
+            int size = branch.size();
+            for (int i = 0; i < size; i++) {
+                if (branch.get(i).equals(branchName)) {
+                    if (readContentsAsString(CURRENT).equals(branchName)) {
+                        System.out.println("No need to checkout the current branch.");
+                        return;
+                    }
+
+                }
+            }
+            System.out.println("No such branch exists.");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void createcommitassetup(Commit arg) {

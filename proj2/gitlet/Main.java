@@ -120,6 +120,21 @@ public class Main {
                 }
                 break;
 
+            case "checkout":
+                if (args[1] == "--") {
+                    if (!Repository.checkoutName(args[2])) {
+                        System.out.println("File does not exist in that commit.");
+                        System.exit(0);
+                    }
+                } else if (args[2] == "--") {
+                    if (!Repository.checkoutID(args[1], args[3])) {
+                        System.out.println("No commit with that id exists.");
+                        System.exit(0);
+                    }
+                } else {
+
+                }
+
             default:
                 if (args.length != 0) {
                     System.out.println("No command with that name exists.");
