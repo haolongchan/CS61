@@ -65,6 +65,14 @@ public class Main {
                 }
                 break;
 
+            case "log":
+                if (args.length != 1) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+                Repository.log();
+                break;
+
             default:
                 if (args.length != 0) {
                     System.out.println("No command with that name exists.");

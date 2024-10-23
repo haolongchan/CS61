@@ -37,7 +37,7 @@ public class Repository {
     public static final File branches = join(GITLET_DIR, "branches");
     public static final File stages = join(GITLET_DIR, "stages");
     public static final File ADDFILE = join(stages, "addfile");
-    public static final File REMOVEFILE = join(stages, "removefile");
+//    public static final File REMOVEFILE = join(stages, "removefile");
 //    public static final File INDEXFILE = join(commits, "indexfile");
 //    public static final File BLOBINDEX = join(blobs, "blobindex"); index -> hash: saved in commit and blob files
 
@@ -51,6 +51,23 @@ public class Repository {
 
     public static Commit head;
 
+
+    private static class pseudoCommit {
+        static String message;
+        static String timestamp;
+        static String parentHash;
+        static String currentHash;
+        static LinkedList<String> RefToBlobs;
+        private pseudoCommit(String msg, String tms, String prtH, String Ha, LinkedList<String> ref) {
+            message = msg;
+            timestamp = tms;
+            parentHash = prtH;
+            currentHash = Ha;
+            RefToBlobs = ref;
+        }
+    }
+
+
     public static boolean setup() throws IOException {
         if (!GITLET_DIR.mkdir()) {
             return false;
@@ -60,7 +77,7 @@ public class Repository {
         stages.mkdir();
         blobs.mkdir();
         ADDFILE.createNewFile();
-        REMOVEFILE.createNewFile();
+//        REMOVEFILE.createNewFile();
 //        INDEXFILE.createNewFile();
 //        BLOBINDEX.createNewFile();
         HEAD.createNewFile();
@@ -142,9 +159,75 @@ public class Repository {
     /*
     * get the newest commit and return
     * */
-    public static Commit readCommit() throws IOException {
-        // must be called after commitHash getting updated
-        throw new UnsupportedEncodingException();
+    public static pseudoCommit readCommit(File commits) throws IOException {
+        String contents = readContentsAsString(commits);
+        int size = contents.length();
+        String message = "";
+        String timestamp = "";
+        String parentHash = "";
+        String currentHash = "";
+        LinkedList<String> RefToBlobs = new LinkedList<>();
+        int index = -1;
+        for (int i = 0; i < size; i++) {
+            if (contents.charAt(i) == '@') {
+                index = i + 1;
+                break;
+            }
+            message += contents.charAt(i);
+        }
+        for (int i = index; i < size; i++) {
+            if (contents.charAt(i) == '@') {
+                index = i + 1;
+                break;
+            }
+            timestamp += contents.charAt(i);
+        }
+        for (int i = index; i < size; i++) {
+            if (contents.charAt(i) == '@') {
+                index = i + 1;
+                break;
+            }
+            parentHash += contents.charAt(i);
+        }
+        for (int i = index; i < size; i++) {
+            if (contents.charAt(i) == '@') {
+                index = i + 1;
+                break;
+            }
+            currentHash += contents.charAt(i);
+        }
+        String tmp = "";
+        for (int i = index; i < size; i++) {
+            if (contents.charAt(i) == '$') {
+                RefToBlobs.add(tmp);
+                tmp = "";
+            }
+            else {
+                tmp += contents.charAt(i);
+            }
+        }
+        return new pseudoCommit(message, timestamp, parentHash, currentHash, RefToBlobs);
+    }
+
+    public static void log() throws IOException {
+        String currentHash = readContentsAsString(HEAD);
+        File currentCommit = join(commits, currentHash);
+        pseudoCommit currentContents = readCommit(currentCommit);
+        System.out.println("===");
+        System.out.println("commit " + currentContents.currentHash);
+        System.out.println("Date: " + currentContents.timestamp);
+        System.out.println(currentContents.message);
+        System.out.println("");
+        while (currentContents.parentHash.length() != 0) {
+            currentCommit = join(commits, currentContents.parentHash);
+            currentContents = readCommit(currentCommit); // TODO: Issue1
+            System.out.println("===");
+            System.out.println("commit " + currentContents.currentHash);
+            System.out.println("Date: " + currentContents.timestamp);
+            System.out.println(currentContents.message);
+            System.out.println("");
+        }
+        // TODO: ignoring the existence of Merge method
     }
 
     public static LinkedList<String> readAddStage() throws IOException {
@@ -209,7 +292,7 @@ public class Repository {
         commitFile.createNewFile();
 //        writeObject(commitFile, (Serializable) arg);
 
-        /* message + timestamp + parentHash + currentHash + reference to blobs */
+        /* TODO: message + timestamp + parentHash + currentHash + reference to blobs */
         appendContents(commitFile, arg.getMessage(), "@", timestamp, "@", parentHash, "@", currentHash, "@");
         if (arg.getRefToBlobs() != null) {
             for (String blobs : arg.getRefToBlobs()) {
