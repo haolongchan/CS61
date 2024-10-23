@@ -470,7 +470,7 @@ public class Repository {
             File commitFile = join(commits, currentHash);
             commitFile.createNewFile();
 //        writeObject(commitFile, (Serializable) arg);
-            appendContents(commitFile, arg.getMessage(), "@", timestamp, "@");
+            appendContents(commitFile, arg.getMessage(), "@", timestamp, "@@", currentHash, "@");
             // TODO: for all commitfile writing, '@' is used to split message, timestamp, parentHash and hash, while '$' is used to split refs, beginning with '@' and ending with '$'
             writeContents(HEAD, currentHash);
             writeContents(MASTER, currentHash);
