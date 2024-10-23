@@ -472,6 +472,18 @@ public class Repository {
         }
     }
 
+    public static boolean removeBranch(String branchName) {
+        if (!join(branches, branchName).exists()) {
+            System.out.println("A branch with that name does not exist.");
+            return false;
+        }
+        if (readContentsAsString(CURRENT).equals(branchName)) {
+            System.out.println("Cannot remove the current branch.");
+            return false;
+        }
+        return deleteBranch(join(branches, branchName));
+    }
+
     public static void createcommitassetup(Commit arg) {
         try {
             String timestamp = Commit.formatDate(arg.getTimestamp());

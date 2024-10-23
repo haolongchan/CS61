@@ -110,6 +110,16 @@ public class Main {
                     System.exit(0);
                 }
                 break;
+            case "rm_branch":
+                if (args.length != 2) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+                if(!Repository.removeBranch(args[1])) {
+                    System.exit(0);
+                }
+                break;
+
             default:
                 if (args.length != 0) {
                     System.out.println("No command with that name exists.");
