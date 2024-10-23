@@ -121,19 +121,20 @@ public class Main {
                 break;
 
             case "checkout":
-                if (args[1] == "--") {
+                if (args[1].equals("--")) {
                     if (!Repository.checkoutName(args[2])) {
                         System.out.println("File does not exist in that commit.");
                         System.exit(0);
                     }
-                } else if (args[2] == "--") {
+                } else if (args[2].equals("--")) {
                     if (!Repository.checkoutID(args[1], args[3])) {
                         System.out.println("No commit with that id exists.");
                         System.exit(0);
                     }
                 } else {
-
+                    throw new UnsupportedOperationException();
                 }
+                break;
 
             default:
                 if (args.length != 0) {

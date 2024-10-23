@@ -115,15 +115,17 @@ public class Repository {
             String fileHash = sha1(readContentsAsString(selected));
             LinkedList<String>[] addContents = readAddStage();
 
-            for (String s : addContents[0]) {
-                if (s.equals(fileHash)) {
-                    return false;
+            if (addContents.length == 0) {
+                for (String s : addContents[0]) {
+                    if (s.equals(fileHash)) {
+                        return false;
+                    }
                 }
             }
             appendContents(ADDFILE, fileHash, ":", fileName, "@");
             File blob = join(blobs, fileHash);
             blob.createNewFile();
-            writeObject(blob, readContents(selected));
+            writeContents(blob, readContentsAsString(selected));
             return true;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -143,6 +145,10 @@ public class Repository {
 
             String fileHash = sha1(readContentsAsString(toremove));
             LinkedList<String>[] addContents = readAddStage();
+            if (addContents.length == 0) {
+                System.out.println("No reason to remove the file.");
+                return false;
+            }
 
             for (String s : addContents[0]) {
                 if (s.equals(fileHash)) {
@@ -188,6 +194,8 @@ public class Repository {
             LinkedList<String> RefToBlobs = new LinkedList<>();
             LinkedList<String> fileLoc = new LinkedList<>();
             int index = -1;
+
+            /* read message */
             for (int i = 0; i < size; i++) {
                 if (contents.charAt(i) == '@') {
                     index = i + 1;
@@ -195,6 +203,8 @@ public class Repository {
                 }
                 message += contents.charAt(i);
             }
+
+            /* read timestamp */
             for (int i = index; i < size; i++) {
                 if (contents.charAt(i) == '@') {
                     index = i + 1;
@@ -202,6 +212,8 @@ public class Repository {
                 }
                 timestamp += contents.charAt(i);
             }
+
+            /* read parent hash */
             for (int i = index; i < size; i++) {
                 if (contents.charAt(i) == '@') {
                     index = i + 1;
@@ -209,6 +221,8 @@ public class Repository {
                 }
                 parentHash += contents.charAt(i);
             }
+
+            /* read current Hash */
             for (int i = index; i < size; i++) {
                 if (contents.charAt(i) == '@') {
                     index = i + 1;
@@ -217,6 +231,8 @@ public class Repository {
                 currentHash += contents.charAt(i);
             }
             String tmp = "";
+
+            /* read reference to blob */
             for (int i = index; i < size; i++) {
                 if (contents.charAt(i) == '!') {
                     index = i + 1;
@@ -231,6 +247,8 @@ public class Repository {
                     tmp += contents.charAt(i);
                 }
             }
+
+            /* read file name */
             for (int i = index; i < size; i++) {
                 if (contents.charAt(i) == '@') {
                     fileLoc.add(tmp);
@@ -372,6 +390,8 @@ public class Repository {
 
     public static LinkedList<String>[] readAddStage() {
         LinkedList<String>[] stages = new LinkedList[2];
+        stages[0] = new LinkedList<>();
+        stages[1] = new LinkedList<>();
         String content = readContentsAsString(ADDFILE);
         int size = content.length();
         String singleHash = "";
@@ -488,6 +508,8 @@ public class Repository {
             String currentBranch = readContentsAsString(CURRENT);
             File currentBranchFile = join(branches, currentBranch);
             writeContents(currentBranchFile, currentHash);
+            writeContents(ADDFILE, "");
+            writeContents(REMOVEFILE, "");
 //        head = new Commit(arg.getMessage(), arg.getTimestamp(), arg.getRefToBlobs(), currentHash);
 //        if (arg.getRefToBlobs() == null) {
 //            return;
@@ -530,6 +552,7 @@ public class Repository {
     public static boolean checkoutName(String name) {
         try {
             pseudoCommit contents = readCommit(join(commits, readContentsAsString(HEAD))); // fileLocation is merely the file name
+
             if (contents.fileLocation == null) {
                 return false;
             }
