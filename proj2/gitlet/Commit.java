@@ -61,7 +61,7 @@ public class Commit {
         return sb.toString();
     }
 
-    public static void addAsSetup(String msg, String parent) throws IOException {
+    public static void addAsSetup(String msg, String parent) {
         timestamp = new Date(0);
         message = msg;
         refToBlobs = null;
@@ -69,7 +69,7 @@ public class Commit {
         Repository.createcommitassetup(new Commit(message, timestamp, refToBlobs, parentHash));
     }
 
-    public static void add(String msg, String parent, LinkedList<String> refs) throws IOException {
+    public static void add(String msg, String parent, LinkedList<String> refs) {
         message = msg;
         timestamp = new Date();
         refToBlobs = refs;
