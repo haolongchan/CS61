@@ -73,6 +73,14 @@ public class Main {
                 Repository.log();
                 break;
 
+            case "global-log":
+                if (args.length != 1) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+                Repository.globallog();
+                break;
+
             default:
                 if (args.length != 0) {
                     System.out.println("No command with that name exists.");

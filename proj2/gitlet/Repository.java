@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 
 import static gitlet.Utils.*;
 
@@ -228,6 +229,21 @@ public class Repository {
             System.out.println("");
         }
         // TODO: ignoring the existence of Merge method
+    }
+
+    public static void globallog() throws IOException {
+        List<String> fileName = plainFilenamesIn(commits);
+        int size = fileName.size();
+        for (int i = 0; i < size; i++) {
+            String name = fileName.get(i);
+            File currentCommit = join(commits, name);
+            pseudoCommit currentContents = readCommit(currentCommit);
+            System.out.println("===");
+            System.out.println("commit " + currentContents.currentHash);
+            System.out.println("Date: " + currentContents.timestamp);
+            System.out.println(currentContents.message);
+            System.out.println("");
+        }
     }
 
     public static LinkedList<String> readAddStage() throws IOException {
