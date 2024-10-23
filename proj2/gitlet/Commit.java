@@ -74,7 +74,7 @@ public class Commit {
         timestamp = new Date();
         refToBlobs = refs;
         parentHash = parent;
-        Repository.createcommitassetup(new Commit(message, timestamp, refToBlobs, parentHash));
+        Repository.createcommits(new Commit(message, timestamp, refToBlobs, parentHash));
     }
 
     /* TODO: fill in the rest of this class. */

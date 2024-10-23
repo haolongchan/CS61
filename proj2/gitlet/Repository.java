@@ -208,6 +208,8 @@ public class Repository {
         File commitFile = join(commits, currentHash);
         commitFile.createNewFile();
 //        writeObject(commitFile, (Serializable) arg);
+
+        /* message + timestamp + parentHash + currentHash + reference to blobs */
         appendContents(commitFile, arg.getMessage(), "@", timestamp, "@", parentHash, "@", currentHash, "@");
         if (arg.getRefToBlobs() != null) {
             for (String blobs : arg.getRefToBlobs()) {
