@@ -100,6 +100,16 @@ public class Main {
                 Repository.status();
                 break;
 
+            case "branch":
+                if (args.length != 2) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+                if (!Repository.createBranch(args[1])) {
+                    System.out.println("A branch with that name already exists.");
+                    System.exit(0);
+                }
+                break;
             default:
                 if (args.length != 0) {
                     System.out.println("No command with that name exists.");

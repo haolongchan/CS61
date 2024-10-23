@@ -457,6 +457,21 @@ public class Repository {
         }
     }
 
+    public static boolean createBranch(String branchName) {
+        try {
+            File branchFile = join(branches, branchName);
+            if (branchFile.exists()) {
+                return false;
+            }
+            String curhash = readContentsAsString(HEAD);
+            branchFile.createNewFile();
+            writeContents(branchFile, curhash);
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void createcommitassetup(Commit arg) {
         try {
             String timestamp = Commit.formatDate(arg.getTimestamp());
