@@ -81,6 +81,17 @@ public class Main {
                 Repository.globallog();
                 break;
 
+            case "find":
+                if (args.length <= 1) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+                if (!Repository.find(args[1])) {
+                    System.out.println("Found no commit with that message.");
+                    System.exit(0);
+                }
+                break;
+
             default:
                 if (args.length != 0) {
                     System.out.println("No command with that name exists.");

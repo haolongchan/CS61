@@ -246,6 +246,22 @@ public class Repository {
         }
     }
 
+    public static boolean find(String msg) throws IOException {
+        List<String> fileName = plainFilenamesIn(commits);
+        int size = fileName.size();
+        boolean found = false;
+        for (int i = 0; i < size; i++) {
+            String name = fileName.get(i);
+            File currentCommit = join(commits, name);
+            pseudoCommit currentContents = readCommit(currentCommit);
+            if (currentContents.message.equals(msg)) {
+                System.out.println(currentContents.currentHash);
+                found = true;
+            }
+        }
+        return found;
+    }
+
     public static LinkedList<String> readAddStage() throws IOException {
         LinkedList<String> stages = new LinkedList<>();
         String content = readContentsAsString(ADDFILE);
