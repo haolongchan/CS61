@@ -92,6 +92,14 @@ public class Main {
                 }
                 break;
 
+            case "status":
+                if (args.length != 1) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+                Repository.status();
+                break;
+
             default:
                 if (args.length != 0) {
                     System.out.println("No command with that name exists.");

@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -38,7 +36,7 @@ public class Repository {
     public static final File branches = join(GITLET_DIR, "branches");
     public static final File stages = join(GITLET_DIR, "stages");
     public static final File ADDFILE = join(stages, "addfile");
-//    public static final File REMOVEFILE = join(stages, "removefile");
+    public static final File REMOVEFILE = join(stages, "removefile");
 //    public static final File INDEXFILE = join(commits, "indexfile");
 //    public static final File BLOBINDEX = join(blobs, "blobindex"); index -> hash: saved in commit and blob files
 
@@ -78,7 +76,7 @@ public class Repository {
         stages.mkdir();
         blobs.mkdir();
         ADDFILE.createNewFile();
-//        REMOVEFILE.createNewFile();
+        REMOVEFILE.createNewFile();
 //        INDEXFILE.createNewFile();
 //        BLOBINDEX.createNewFile();
         HEAD.createNewFile();
@@ -147,6 +145,9 @@ public class Repository {
                 for (String content : addContents) {
                     if (!content.equals(fileHash)) {
                         appendContents(ADDFILE, content, "@");
+                    }
+                    else {
+                        appendContents(REMOVEFILE, content, "@");
                     }
                 }
                 return true;
@@ -262,9 +263,87 @@ public class Repository {
         return found;
     }
 
+    public static void status() throws IOException {
+        List<String> branchName = plainFilenamesIn(branches);
+        int size = branchName.size();
+        Collections.sort(branchName);
+        String curbranch = readContentsAsString(CURRENT);
+        System.out.println("=== Branches ===");
+        for (int i = 0; i < size; ++i) {
+            if (branchName.get(i).equals(CURRENT)) {
+                continue;
+            }
+            if (branchName.get(i).equals(curbranch)) {
+                System.out.println("*" + curbranch);
+            }
+            else {
+                System.out.println(branchName.get(i));
+            }
+        }
+        System.out.println("");
+        System.out.println("=== Staged Files ===");
+        LinkedList<String> stagedHash = readAddStage();
+        List<String> stageName = plainFilenamesIn(CWD);
+        size = stageName.size();
+        Collections.sort(stageName);
+        List<String> stage = new ArrayList<>();
+        List<String> remove = new ArrayList<>();
+        for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < stagedHash.size(); j++) {
+                if (stagedHash.get(j).equals(sha1(readContentsAsString(join(CWD, stageName.get(i)))))) {
+                    stage.add(stageName.get(i));
+                }
+            }
+        }
+        LinkedList<String> removedHash = readRemoveStage();
+        for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < removedHash.size(); j++) {
+                if (removedHash.get(j).equals(sha1(readContentsAsString(join(CWD, stageName.get(i)))))) {
+                    remove.add(stageName.get(i)); // TODO: matching wrong file
+                    stage.add(stageName.get(i));
+                }
+            }
+        }
+        Collections.sort(remove);
+        Collections.sort(stage);
+        size = stage.size();
+        for (int i = 0; i < size; ++i) {
+            System.out.println(stage.get(i));
+        }
+        System.out.println("");
+        System.out.println("=== Removed Files ===");
+        size = remove.size();
+        for (int i = 0; i < size; ++i) {
+            System.out.println(remove.get(i));
+        }
+        System.out.println("");
+        System.out.println("=== Modifications Not Staged For Commit ===");
+
+        System.out.println("");
+        System.out.println("=== Untracked Files ===");
+
+    }
+
     public static LinkedList<String> readAddStage() throws IOException {
         LinkedList<String> stages = new LinkedList<>();
         String content = readContentsAsString(ADDFILE);
+        int size = content.length();
+        String singleHash = "";
+        for (int i = 0; i < size; i++) {
+            if (content.charAt(i) != '@') {
+                singleHash += content.charAt(i);
+            }
+            else {
+                stages.add(singleHash);
+                singleHash = "";
+            }
+        }
+        return stages;
+    }
+
+    public static LinkedList<String> readRemoveStage() throws IOException {
+        LinkedList<String> stages = new LinkedList<>();
+        String content = readContentsAsString(REMOVEFILE);
         int size = content.length();
         String singleHash = "";
         for (int i = 0; i < size; i++) {
