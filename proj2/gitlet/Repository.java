@@ -597,6 +597,7 @@ public class Repository {
                         }
                     }
                 }
+                commitHash = contents.parentHash;
             }
             return false;
         } catch (Exception e) {
