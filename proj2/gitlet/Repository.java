@@ -133,6 +133,14 @@ public class Repository {
             return false;
         }
         if (!toremove.exists()) {
+            PseudoCommit commitContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+            for (String s : commitContents.fileLocation) {
+                if (s.equals(fileName)) {
+                    restrictedDelete(toremove);
+                    appendContents(REMOVEFILE, "^@", fileName, "@");
+                    return true;
+                }
+            }
             System.out.println("No reason to remove the file.");
             return false;
         }
@@ -460,9 +468,13 @@ public class Repository {
                     exist = true;
                     parentContents.refToBlobs.remove(j);
                     parentContents.fileLocation.remove(j);
+                    psize--;
                     if (join(CWD, arg.getRmFile().get(i)).exists()) {
                         restrictedDelete(join(CWD, arg.getRmFile().get(i)));
                     }
+                } else if (arg.getRmHash().get(i).equals("^")) {
+                    writeContents(REMOVEFILE, "");
+                    return;
                 }
             }
             if (!exist) {
@@ -497,9 +509,13 @@ public class Repository {
                     exist = true;
                     parentContents.refToBlobs.remove(j);
                     parentContents.fileLocation.remove(j);
+                    psize--;
                     if (join(CWD, removed.get(i)).exists()) {
                         restrictedDelete(join(CWD, removed.get(i)));
                     }
+                } else if (parentContents.refToBlobs.get(j).equals("^")) {
+                    writeContents(REMOVEFILE, "");
+                    return;
                 }
             }
             if (!exist) {
