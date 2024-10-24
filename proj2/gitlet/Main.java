@@ -132,8 +132,16 @@ public class Main {
                         System.exit(0);
                     }
                 } else {
-                    throw new UnsupportedOperationException();
+                    Repository.checkoutBranch(args[1]);
                 }
+                break;
+
+            case "reset":
+                if (args.length != 1) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+                Repository.reset(args[1]);
                 break;
 
             default:

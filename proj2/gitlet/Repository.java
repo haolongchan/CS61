@@ -565,6 +565,7 @@ public class Repository {
                     }
                     String content = readContentsAsString(join(blobs, contents.RefToBlobs.get(i)));
                     writeContents(overwriteFile, content);
+                    writeContents(HEAD, contents.currentHash);
                     return true;
                 }
             }
@@ -593,6 +594,7 @@ public class Repository {
                             }
                             String content = readContentsAsString(join(blobs, contents.RefToBlobs.get(i)));
                             writeContents(overwriteFile, content);
+                            writeContents(HEAD, contents.currentHash);
                             return true;
                         }
                     }
@@ -615,10 +617,77 @@ public class Repository {
                         System.out.println("No need to checkout the current branch.");
                         return;
                     }
+                    pseudoCommit contents = readCommit(join(commits, readContentsAsString(join(branches, branchName))));
+                    List<String> allFile = plainFilenamesIn(CWD);
+                    List<String> allHash = new ArrayList<>(allFile.size());
+                    size = allFile.size();
+                    for (int j = 0; j < size; j++) {
+                        allHash.add(sha1(readContentsAsString(join(CWD, allFile.get(j)))));
+                    }
+                    for (String contentHash : contents.RefToBlobs) {
+                        for (String fileHash : allHash) {
+                            if (contentHash.equals(fileHash)) {
+                                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                                return;
+                            }
+                        }
+                    }
+                    writeContents(HEAD, contents.currentHash);
+                    writeContents(CURRENT, branchName);
+                    size = contents.RefToBlobs.size();
+                    for (int j = 0; j < size; j++) {
+                        File writeFile = join(CWD, contents.fileLocation.get(j));
+                        if (!writeFile.exists()) {
+                            writeFile.createNewFile();
+                        }
+                        writeContents(writeFile, readContentsAsString(join(blobs, contents.RefToBlobs.get(j))));
+                    }
 
                 }
             }
             System.out.println("No such branch exists.");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void reset(String ID) {
+        try {
+            List<String> commitFile = plainFilenamesIn(commits);
+            for (String file : commitFile) {
+                pseudoCommit current = readCommit(join(commits, file));
+                if (current.currentHash.equals(ID)) {
+                    pseudoCommit contents = readCommit(join(commits, file));
+                    List<String> allFile = plainFilenamesIn(CWD);
+                    List<String> allHash = new ArrayList<>(allFile.size());
+                    int size = allFile.size();
+                    for (int i = 0; i < size; i++) {
+                        allHash.add(sha1(readContentsAsString(join(CWD, allFile.get(i)))));
+                    }
+                    for (String contentHash : contents.RefToBlobs) {
+                        for (String fileHash : allHash) {
+                            if (contentHash.equals(fileHash)) {
+                                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                                return;
+                            }
+                        }
+                    }
+                    for (int i = 0; i < size; ++i) {
+                        File dlt = join(CWD, allFile.get(i));
+                        if (dlt.exists()) {
+                            restrictedDelete(dlt);
+                        }
+                    }
+                    size = contents.RefToBlobs.size();
+                    for (int i = 0; i < size; ++i) {
+                        File writeFile = join(CWD, contents.fileLocation.get(i));
+                        writeFile.createNewFile();
+                        writeContents(writeFile, readContentsAsString(join(blobs, contents.RefToBlobs.get(i))));
+                    }
+                    writeContents(HEAD, contents.currentHash);
+                }
+            }
+            System.out.println("No commit with that id exists.");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
