@@ -91,7 +91,8 @@ public class Commit {
                 refToBlobs, parentHash, null, null, null));
     }
 
-    public static void add(String msg, String parent, LinkedList<String>[] refs, LinkedList<String>[] rmFileLocation) {
+    public static void add(String msg, String parent, LinkedList<String>[] refs,
+                           LinkedList<String>[] rmFileLocation) {
         message = msg;
         timestamp = new Date();
         refToBlobs = refs[0];
