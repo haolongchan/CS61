@@ -138,39 +138,6 @@ public class Repository {
             System.out.println("Not in an initialized Gitlet directory.");
             return false;
         }
-//        if (!toremove.exists()) {
-//            PseudoCommit parentCommit = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-//            int size = parentCommit.fileLocation.size();
-//            for (int i = 0; i < size; i++) {
-//                if (parentCommit.fileLocation.get(i).equals(fileName)) {
-//                    parentCommit.fileLocation.remove(i);
-//                    parentCommit.refToBlobs.remove(i);
-//                    File tmp = join(COMMITS, parentCommit.currentHash);
-//                    parentCommit.currentHash = sha1(parentCommit.message, parentCommit.timestamp,
-//                            parentCommit.refToBlobs.toString(), parentCommit.parentHash,
-//                            parentCommit.fileLocation.toString());
-//                    writeContents(tmp, "");
-//                    tmp = join(COMMITS, parentCommit.currentHash);
-//                    appendContents(tmp, parentCommit.message, "@",
-//                            parentCommit.timestamp, "@", parentCommit.parentHash, "@",
-//                            parentCommit.currentHash, "@");
-//                    if (parentCommit.refToBlobs.size() != 0) {
-//                        for (String s : parentCommit.refToBlobs) {
-//                            appendContents(tmp, s, "$");
-//                        }
-//                    }
-//                    appendContents(tmp, "!");
-//                    for (String s : parentCommit.fileLocation) {
-//                        appendContents(tmp, s, "@");
-//                    }
-//                    writeContents(HEAD, parentCommit.currentHash);
-//                    String currentBranch = readContentsAsString(CURRENT);
-//                    File currentBranchFile = join(BRANCHES, currentBranch);
-//                    writeContents(currentBranchFile, parentCommit.currentHash);
-//                    return true;
-//                }
-//            }
-//        }
         String fileHash = sha1(readContentsAsString(toremove), fileName);
         LinkedList<String>[] addContents = readAddStage();
         LinkedList<String>[] removeContents = readRemoveStage();
@@ -181,7 +148,7 @@ public class Repository {
                     return false;
                 }
             }
-            appendContents(REMOVEFILE, fileHash, "2", fileName, "@");
+            appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
             return true;
         }
         if (addContents[0].isEmpty()) {
