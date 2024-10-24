@@ -108,17 +108,22 @@ public class Repository {
             String fileHash = sha1(readContentsAsString(selected));
             LinkedList<String>[] addContents = readAddStage();
 
-            if (addContents.length == 0) {
+            if (addContents[0].size() == 0) {
                 for (String s : addContents[0]) {
                     if (s.equals(fileHash)) {
                         return false;
                     }
                 }
             }
-            appendContents(ADDFILE, fileHash, ":", fileName, "@");
             File blob = join(BLOBS, fileHash);
             blob.createNewFile();
             writeContents(blob, readContentsAsString(selected));
+//            for (String s : removeContents) {
+//                if (s.equals(fileHash)) {
+//                    return true;
+//                }
+//            }
+            appendContents(ADDFILE, fileHash, ":", fileName, "@");
             return true;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -130,38 +135,37 @@ public class Repository {
         if (!toremove.exists()) {
             System.out.println("No reason to remove the file.");
         }
-        if (!toremove.exists()) {
-            System.out.println("Not in an initialized Gitlet directory.");
-            return false;
-        }
+//        if (!toremove.exists()) {
+//            System.out.println("Not in an initialized Gitlet directory.");
+//            return false;
+//        }
 
         String fileHash = sha1(readContentsAsString(toremove));
         LinkedList<String>[] addContents = readAddStage();
-        if (addContents.length == 0) {
+        LinkedList<String>[] removeContents = readRemoveStage();
+        if (!removeContents[0].isEmpty()) {
+            for (String s : removeContents[0]) {
+                if (s.equals(fileHash)) {
+                    System.out.println("No reason to remove the file.");
+                    return false;
+                }
+            }
+        }
+        if (addContents[0].size() == 0) {
+            PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+            for (String s : contents.fileLocation) {
+                if (s.equals(fileName)) {
+                    appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
+                    return true;
+                }
+            }
             System.out.println("No reason to remove the file.");
             return false;
         }
 
         for (String s : addContents[0]) {
             if (s.equals(fileHash)) {
-                writeContents(ADDFILE, "");
-                int size = addContents[1].size();
-                for (int i = 0; i < size; i++) {
-                    if (addContents[0].get(i).equals(fileHash)) {
-                        appendContents(REMOVEFILE, fileHash, "@");
-                    } else {
-                        appendContents(ADDFILE, addContents[0].get(i), ":",
-                                addContents[1].get(i), "@");
-                    }
-                }
-//                    for (LinkedList<String> content : addContents) {
-//                        if (!content.equals(fileHash)) {
-//                            appendContents(ADDFILE, content, "@");
-//                        }
-//                        else {
-//                            appendContents(REMOVEFILE, content, "@");
-//                        }
-//                    }
+                appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
                 return true;
             }
         }
@@ -318,29 +322,17 @@ public class Repository {
         }
         System.out.println("");
         System.out.println("=== Staged Files ===");
-        LinkedList<String> stagedHash = readAddStage()[0];
-        List<String> stageName = plainFilenamesIn(CWD);
-        size = stageName.size();
-        Collections.sort(stageName);
+        LinkedList<String>[] stagedHash = readAddStage();
+        LinkedList<String>[] removedHash = readRemoveStage();
         List<String> stage = new ArrayList<>();
         List<String> remove = new ArrayList<>();
-        for (int i = 0; i < size; ++i) {
-            for (int j = 0; j < stagedHash.size(); j++) {
-                if (stagedHash.get(j).equals(sha1(
-                        readContentsAsString(join(CWD, stageName.get(i)))))) {
-                    stage.add(stageName.get(i));
-                }
-            }
+        size = stagedHash[1].size();
+        for (int i = 0; i < size; i++) {
+            stage.add(stagedHash[1].get(i));
         }
-        LinkedList<String> removedHash = readRemoveStage();
-        for (int i = 0; i < size; ++i) {
-            for (int j = 0; j < removedHash.size(); j++) {
-                if (removedHash.get(j).equals(sha1(
-                        readContentsAsString(join(CWD, stageName.get(i)))))) {
-                    remove.add(stageName.get(i));
-                    stage.add(stageName.get(i));
-                }
-            }
+        size = removedHash[1].size();
+        for (int i = 0; i < size; i++) {
+            remove.add(removedHash[1].get(i));
         }
         Collections.sort(remove);
         Collections.sort(stage);
@@ -397,17 +389,32 @@ public class Repository {
         return stage;
     }
 
-    public static LinkedList<String> readRemoveStage() {
-        LinkedList<String> stage = new LinkedList<>();
+    public static LinkedList<String>[] readRemoveStage() {
+        LinkedList<String>[] stage = new LinkedList[2];
+        stage[0] = new LinkedList<>();
+        stage[1] = new LinkedList<>();
         String content = readContentsAsString(REMOVEFILE);
         int size = content.length();
         String singleHash = "";
+        String singleName = "";
+        boolean readHash = true;
         for (int i = 0; i < size; i++) {
-            if (content.charAt(i) != '@') {
-                singleHash += content.charAt(i);
+            if (readHash) {
+                if (content.charAt(i) != '@') {
+                    singleHash += content.charAt(i);
+                } else {
+                    stage[0].add(singleHash);
+                    singleHash = "";
+                    readHash = false;
+                }
             } else {
-                stage.add(singleHash);
-                singleHash = "";
+                if (content.charAt(i) != '@') {
+                    singleName += content.charAt(i);
+                } else {
+                    stage[1].add(singleName);
+                    singleName = "";
+                    readHash = true;
+                }
             }
         }
         return stage;
@@ -421,6 +428,8 @@ public class Repository {
         LinkedList<String>[] addContents = readAddStage();
         if (addContents[0].isEmpty() || readContentsAsString(ADDFILE).length() == 0) {
             System.out.println("No changes added to the commit.");
+            writeContents(ADDFILE, "");
+            writeContents(REMOVEFILE, "");
             return false;
         }
         String parentHash = readContentsAsString(HEAD);
