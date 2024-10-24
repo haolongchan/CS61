@@ -166,7 +166,6 @@ public class Repository {
         for (String s : addContents[0]) {
             if (s.equals(fileHash)) {
                 appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
-//                restrictedDelete(toremove);
                 return true;
             }
         }
@@ -488,7 +487,7 @@ public class Repository {
         for (int i = 0; i < size; i++) {
             boolean exist = false;
             for (int j = 0; j < psize; j++) {
-                if (parentContents.refToBlobs.get(j).equals(removed.get(i))) {
+                if (parentContents.fileLocation.get(j).equals(removed.get(i))) {
                     exist = true;
                     parentContents.refToBlobs.remove(j);
                     parentContents.fileLocation.remove(j);
@@ -530,7 +529,6 @@ public class Repository {
     public static void createcommits(Commit arg) {
         try {
             String timestamp = Commit.formatDate(arg.getTimestamp());
-            LinkedList<Commit> commitlist = new LinkedList<>();
             String parentHash = readContentsAsString(HEAD);
             arg.addparentHash(parentHash);
             String currentHash = "";
@@ -548,18 +546,16 @@ public class Repository {
             List<String> removed = new ArrayList<>();
             int size = stagedHash[1].size();
             for (int i = 0; i < size; i++) {
-                staged.add(stagedHash[0].get(i));
+                staged.add(stagedHash[1].get(i));
             }
             size = removedHash[1].size();
             for (int i = 0; i < size; i++) {
-                removed.add(removedHash[0].get(i));
+                removed.add(removedHash[1].get(i));
             }
             List<String> common = new ArrayList<>(staged);
             common.retainAll(removed);
             staged.removeAll(common);
             removed.removeAll(common);
-            Collections.sort(removed);
-            Collections.sort(staged);
             if (removed.size() > 0) {
                 rmOfCommits(arg, removed);
             }
