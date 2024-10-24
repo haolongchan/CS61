@@ -307,7 +307,7 @@ public class Repository {
         String curbranch = readContentsAsString(CURRENT);
         System.out.println("=== Branches ===");
         for (int i = 0; i < size; ++i) {
-            if (branchName.get(i).equals(CURRENT)) {
+            if (branchName.get(i).equals("current")) {
                 continue;
             }
             if (branchName.get(i).equals(curbranch)) {
