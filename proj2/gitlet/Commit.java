@@ -31,8 +31,8 @@ public class Commit {
         this.parentHash = hsh;
     }
 
-    public void addhash(String hash) {
-        this.hash = hash;
+    public void addhash(String hsh) {
+        this.hash = hsh;
     }
 
     public LinkedList<String> getFileLocation() {
