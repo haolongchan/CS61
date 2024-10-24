@@ -104,6 +104,13 @@ public class Repository {
             String fileHash = sha1(readContentsAsString(selected), fileName);
             LinkedList<String>[] addContents = readAddStage();
 
+            List<String> blobName = plainFilenamesIn(BLOBS);
+            for (String s : blobName) {
+                if (s.equals(fileHash)) {
+                    return false;
+                }
+            }
+
             if (!addContents[0].isEmpty()) {
                 for (String s : addContents[0]) {
                     if (s.equals(fileHash)) {
