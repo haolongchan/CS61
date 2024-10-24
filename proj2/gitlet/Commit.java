@@ -26,6 +26,8 @@ public class Commit {
     private static String parentHash;
     private static String hash;
     private static LinkedList<String> fileLocation;
+    private static LinkedList<String> rmHash;
+    private static LinkedList<String> rmFile;
 
     public void addparentHash(String hsh) {
         this.parentHash = hsh;
@@ -39,6 +41,14 @@ public class Commit {
         return fileLocation;
     }
 
+    public LinkedList<String> getRmHash() {
+        return rmHash;
+    }
+
+    public LinkedList<String> getRmFile() {
+        return rmFile;
+    }
+
     public String getMessage() {
         return message;
     }
@@ -50,12 +60,15 @@ public class Commit {
     }
 
     public Commit(String message, Date timestamp, LinkedList<String> refToBlobs,
-                  String parentHash, LinkedList<String> fileLocation) {
+                  String parentHash, LinkedList<String> fileLocation, LinkedList<String> rmHash,
+                  LinkedList<String> rmFile) {
         this.message = message;
         this.timestamp = timestamp;
         this.refToBlobs = refToBlobs;
         this.parentHash = parentHash;
         this.fileLocation = fileLocation;
+        this.rmHash = rmHash;
+        this.rmFile = rmFile;
     }
 
     public static String formatDate(Date date) {
@@ -75,17 +88,19 @@ public class Commit {
         refToBlobs = null;
         parentHash = parent;
         Repository.createcommitassetup(new Commit(message, timestamp,
-                refToBlobs, parentHash, null));
+                refToBlobs, parentHash, null, null, null));
     }
 
-    public static void add(String msg, String parent, LinkedList<String>[] refs) {
+    public static void add(String msg, String parent, LinkedList<String>[] refs, LinkedList<String>[] rmFileLocation) {
         message = msg;
         timestamp = new Date();
         refToBlobs = refs[0];
         fileLocation = refs[1];
         parentHash = parent;
+        rmHash = rmFileLocation[0];
+        rmFile = rmFileLocation[1];
         Repository.createcommits(new Commit(message, timestamp,
-                refToBlobs, parentHash, fileLocation));
+                refToBlobs, parentHash, fileLocation, rmHash, rmFile));
     }
 
 }
