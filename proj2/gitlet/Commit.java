@@ -1,25 +1,17 @@
 package gitlet;
 
-// TODO: any imports you need here
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date; // TODO: You'll likely use this in this class
+import java.util.Date;
 import java.util.Formatter;
-import java.util.TimeZone;
 import java.util.LinkedList;
 import java.util.Locale;
-import java.util.List;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Haolong
  */
 public class Commit {
     /**
-     * TODO: add instance variables here.
      *
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
@@ -31,9 +23,17 @@ public class Commit {
     private static String message;
     private static Date timestamp;
     private static LinkedList<String> refToBlobs = new LinkedList<>();
-    public static String parentHash;
-    public static String hash;
-    public static LinkedList<String> fileLocation;
+    private static String parentHash;
+    private static String hash;
+    private static LinkedList<String> fileLocation;
+
+    public void addparentHash(String hash) {
+        this.parentHash = hash;
+    }
+
+    public void addhash(String hash) {
+        this.hash = hash;
+    }
 
     public LinkedList<String> getFileLocation() {
         return fileLocation;
@@ -49,7 +49,8 @@ public class Commit {
         return refToBlobs;
     }
 
-    public Commit(String message, Date timestamp, LinkedList<String> refToBlobs, String parentHash, LinkedList<String> fileLocation) {
+    public Commit(String message, Date timestamp, LinkedList<String> refToBlobs,
+                  String parentHash, LinkedList<String> fileLocation) {
         this.message = message;
         this.timestamp = timestamp;
         this.refToBlobs = refToBlobs;
@@ -62,7 +63,8 @@ public class Commit {
         Formatter formatter = new Formatter(sb, Locale.US);
 
         // Use Formatter to format the date
-        formatter.format(Locale.US, "%ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
+        formatter.format(Locale.US, "%ta %tb %td %tT %tY %tz",
+                date, date, date, date, date, date);
 
         return sb.toString();
     }
@@ -72,7 +74,8 @@ public class Commit {
         message = msg;
         refToBlobs = null;
         parentHash = parent;
-        Repository.createcommitassetup(new Commit(message, timestamp, refToBlobs, parentHash, null));
+        Repository.createcommitassetup(new Commit(message, timestamp,
+                refToBlobs, parentHash, null));
     }
 
     public static void add(String msg, String parent, LinkedList<String>[] refs) {
@@ -81,8 +84,8 @@ public class Commit {
         refToBlobs = refs[0];
         fileLocation = refs[1];
         parentHash = parent;
-        Repository.createcommits(new Commit(message, timestamp, refToBlobs, parentHash, fileLocation));
+        Repository.createcommits(new Commit(message, timestamp,
+                refToBlobs, parentHash, fileLocation));
     }
 
-    /* TODO: fill in the rest of this class. */
 }
