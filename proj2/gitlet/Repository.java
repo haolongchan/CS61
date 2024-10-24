@@ -558,7 +558,6 @@ public class Repository {
                             String content = readContentsAsString(join(BLOBS,
                                     contents.Ref_To_Blobs.get(i)));
                             writeContents(overwriteFile, content);
-                            writeContents(HEAD, contents.currentHash);
                             return true;
                         }
                     }
