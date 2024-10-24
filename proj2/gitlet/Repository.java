@@ -138,6 +138,10 @@ public class Repository {
             System.out.println("Not in an initialized Gitlet directory.");
             return false;
         }
+        if (!toremove.exists()) {
+            System.out.println("No reason to remove the file.");
+            return false;
+        }
         String fileHash = sha1(readContentsAsString(toremove), fileName);
         LinkedList<String>[] addContents = readAddStage();
         LinkedList<String>[] removeContents = readRemoveStage();
@@ -149,6 +153,13 @@ public class Repository {
                 }
             }
             appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
+            PseudoCommit commitContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+            for (String s : commitContents.refToBlobs) {
+                if (s.equals(fileHash)) {
+                    restrictedDelete(toremove);
+                    return true;
+                }
+            }
             return true;
         }
         if (addContents[0].isEmpty()) {
@@ -156,6 +167,7 @@ public class Repository {
             for (String s : contents.refToBlobs) {
                 if (s.equals(fileHash)) {
                     appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
+                    restrictedDelete(toremove);
                     return true;
                 }
             }
