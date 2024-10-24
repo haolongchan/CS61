@@ -132,7 +132,7 @@ public class Main {
                 break;
 
             case "reset":
-                if (args.length != 1) {
+                if (args.length != 2) {
                     System.out.println("Incorrect operands.");
                     System.exit(0);
                 }
