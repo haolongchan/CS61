@@ -156,6 +156,7 @@ public class Repository {
             for (String s : contents.fileLocation) {
                 if (s.equals(fileName)) {
                     appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
+                    restrictedDelete(toremove);
                     return true;
                 }
             }
@@ -166,6 +167,7 @@ public class Repository {
         for (String s : addContents[0]) {
             if (s.equals(fileHash)) {
                 appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
+                restrictedDelete(toremove);
                 return true;
             }
         }
@@ -334,6 +336,10 @@ public class Repository {
         for (int i = 0; i < size; i++) {
             remove.add(removedHash[1].get(i));
         }
+        List<String> common = new ArrayList<>(stage);
+        common.retainAll(remove);
+        stage.removeAll(common);
+        remove.removeAll(common);
         Collections.sort(remove);
         Collections.sort(stage);
         size = stage.size();
