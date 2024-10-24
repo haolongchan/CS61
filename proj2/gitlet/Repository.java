@@ -101,14 +101,10 @@ public class Repository {
                 System.out.println("Not in an initialized Gitlet directory.");
                 return false;
             }
-//        blobHash = readContentsAsString(BLOBINDEX);
-//        File blobfile = join(BLOBS, String.valueOf(blobHash));
-//        byte[] contents = readContents(toadd);
-
             String fileHash = sha1(readContentsAsString(selected), fileName);
             LinkedList<String>[] addContents = readAddStage();
 
-            if (addContents[0].size() == 0) {
+            if (!addContents[0].isEmpty()) {
                 for (String s : addContents[0]) {
                     if (s.equals(fileHash)) {
                         return false;
@@ -116,9 +112,7 @@ public class Repository {
                 }
             }
             File blob = join(BLOBS, fileHash);
-            if (!blob.createNewFile()) {
-                return false;
-            }
+            blob.createNewFile();
             writeContents(blob, readContentsAsString(selected));
 //            for (String s : removeContents) {
 //                if (s.equals(fileHash)) {
