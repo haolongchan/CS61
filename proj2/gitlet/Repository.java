@@ -45,7 +45,7 @@ public class Repository {
         static String timestamp;
         static String parentHash;
         static String currentHash;
-        static LinkedList<String> Ref_To_Blobs;
+        static LinkedList<String> refToBlobs;
         static LinkedList<String> fileLocation;
         private PseudoCommit(String msg, String tms, String prtH, String ha,
                              LinkedList<String> ref, LinkedList<String> loc) {
@@ -53,7 +53,7 @@ public class Repository {
             timestamp = tms;
             parentHash = prtH;
             currentHash = ha;
-            Ref_To_Blobs = ref;
+            refToBlobs = ref;
             fileLocation = loc;
         }
     }
@@ -184,7 +184,7 @@ public class Repository {
         String timestamp = "";
         String parentHash = "";
         String currentHash = "";
-        LinkedList<String> RefToBlobs = new LinkedList<>();
+        LinkedList<String> refToBlob = new LinkedList<>();
         LinkedList<String> fileLoc = new LinkedList<>();
         int index = -1;
 
@@ -233,7 +233,7 @@ public class Repository {
                 break;
             }
             if (contents.charAt(i) == '$') {
-                RefToBlobs.add(tmp);
+                refToBlob.add(tmp);
                 tmp = "";
             } else {
                 tmp += contents.charAt(i);
@@ -250,7 +250,7 @@ public class Repository {
             }
         }
         return new PseudoCommit(message, timestamp, parentHash,
-                currentHash, RefToBlobs, fileLoc);
+                currentHash, refToBlob, fileLoc);
     }
 
     public static void log() {
@@ -264,7 +264,7 @@ public class Repository {
         System.out.println("");
         while (currentContents.parentHash.length() != 0) {
             currentCommit = join(COMMITS, currentContents.parentHash);
-            currentContents = readCommit(currentCommit); // TODO: Issue1
+            currentContents = readCommit(currentCommit);
             System.out.println("===");
             System.out.println("commit " + currentContents.currentHash);
             System.out.println("Date: " + currentContents.timestamp);
@@ -535,7 +535,7 @@ public class Repository {
                         overwriteFile.createNewFile();
                     }
                     String content = readContentsAsString(join(BLOBS,
-                            contents.Ref_To_Blobs.get(i)));
+                            contents.refToBlobs.get(i)));
                     writeContents(overwriteFile, content);
                     writeContents(HEAD, contents.currentHash);
                     return true;
@@ -565,7 +565,7 @@ public class Repository {
                                 overwriteFile.createNewFile();
                             }
                             String content = readContentsAsString(join(BLOBS,
-                                    contents.Ref_To_Blobs.get(i)));
+                                    contents.refToBlobs.get(i)));
                             writeContents(overwriteFile, content);
                             return true;
                         }
@@ -597,25 +597,25 @@ public class Repository {
                     for (int j = 0; j < size; j++) {
                         allHash.add(sha1(readContentsAsString(join(CWD, allFile.get(j)))));
                     }
-                    for (String contentHash : contents.Ref_To_Blobs) {
+                    for (String contentHash : contents.refToBlobs) {
                         for (String fileHash : allHash) {
                             if (contentHash.equals(fileHash)) {
-                                System.out.println("There is an untracked file in the way; " +
-                                        "delete it, or add and commit it first.");
+                                System.out.println("There is an untracked file in the way; "
+                                        + "delete it, or add and commit it first.");
                                 return;
                             }
                         }
                     }
                     writeContents(HEAD, contents.currentHash);
                     writeContents(CURRENT, branchName);
-                    size = contents.Ref_To_Blobs.size();
+                    size = contents.refToBlobs.size();
                     for (int j = 0; j < size; j++) {
                         File writeFile = join(CWD, contents.fileLocation.get(j));
                         if (!writeFile.exists()) {
                             writeFile.createNewFile();
                         }
                         writeContents(writeFile, readContentsAsString(
-                                join(BLOBS, contents.Ref_To_Blobs.get(j))));
+                                join(BLOBS, contents.refToBlobs.get(j))));
                     }
 
                 }
@@ -639,11 +639,11 @@ public class Repository {
                     for (int i = 0; i < size; i++) {
                         allHash.add(sha1(readContentsAsString(join(CWD, allFile.get(i)))));
                     }
-                    for (String contentHash : contents.Ref_To_Blobs) {
+                    for (String contentHash : contents.refToBlobs) {
                         for (String fileHash : allHash) {
                             if (contentHash.equals(fileHash)) {
-                                System.out.println("There is an untracked file in the way; " +
-                                        "delete it, or add and commit it first.");
+                                System.out.println("There is an untracked file in the way; "
+                                       + "delete it, or add and commit it first.");
                                 return;
                             }
                         }
@@ -654,12 +654,12 @@ public class Repository {
                             restrictedDelete(dlt);
                         }
                     }
-                    size = contents.Ref_To_Blobs.size();
+                    size = contents.refToBlobs.size();
                     for (int i = 0; i < size; ++i) {
                         File writeFile = join(CWD, contents.fileLocation.get(i));
                         writeFile.createNewFile();
                         writeContents(writeFile, readContentsAsString(
-                                join(BLOBS, contents.Ref_To_Blobs.get(i))));
+                                join(BLOBS, contents.refToBlobs.get(i))));
                     }
                     writeContents(HEAD, contents.currentHash);
                 }

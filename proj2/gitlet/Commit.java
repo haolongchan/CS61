@@ -27,8 +27,8 @@ public class Commit {
     private static String hash;
     private static LinkedList<String> fileLocation;
 
-    public void addparentHash(String hash) {
-        this.parentHash = hash;
+    public void addparentHash(String hsh) {
+        this.parentHash = hsh;
     }
 
     public void addhash(String hash) {
