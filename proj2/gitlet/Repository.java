@@ -786,6 +786,8 @@ public class Repository {
                     }
                     PseudoCommit contents = readCommit(join(COMMITS,
                             readContentsAsString(join(BRANCHES, branchName))));
+                    PseudoCommit headContents = readCommit(join(COMMITS,
+                            readContentsAsString(HEAD)));
                     List<String> blobFiles = plainFilenamesIn(BLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
                     List<String> allHash = new ArrayList<>(allFile.size());
@@ -804,17 +806,34 @@ public class Repository {
                         allHash.add(sha1(readContentsAsString(join(CWD,
                                 allFile.get(j))), allFile.get(j)));
                     }
-                    for (String fileHash : allHash) {
+                    int branchSize = contents.fileLocation.size();
+                    int headSize = headContents.fileLocation.size();
+                    for (int j = 0; j < branchSize; j++) {
                         boolean checked = false;
-                        for (String blobHash : blobFiles) {
-                            if (blobHash.equals(fileHash)) {
+                        for (int k = 0; k < headSize; k++) {
+                            if (contents.refToBlobs.get(j).equals
+                                    (headContents.refToBlobs.get(k))) {
                                 checked = true;
                             }
                         }
                         if (!checked) {
-                            System.out.println("There is an untracked file in the way; "
-                                    + "delete it, or add and commit it first.");
-                            return;
+                            if (join(CWD, contents.fileLocation.get(j)).exists()) {
+                                System.out.println("There is an untracked file in the way; "
+                                        + "delete it, or add and commit it first.");
+                                return;
+                            }
+                        }
+                    }
+                    for (int j = 0; j < branchSize; j++) {
+                        boolean checked = false;
+                        for (int k = 0; k < headSize; k++) {
+                            if (contents.refToBlobs.get(j).equals
+                                    (headContents.refToBlobs.get(k))) {
+                                checked = true;
+                            }
+                        }
+                        if (!checked) {
+                            restrictedDelete(join(CWD, contents.fileLocation.get(j)));
                         }
                     }
                     writeContents(HEAD, contents.currentHash);
