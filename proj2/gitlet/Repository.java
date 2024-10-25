@@ -148,7 +148,7 @@ public class Repository {
                 if (commitContents.fileLocation.get(i).equals(fileName)) {
                     restrictedDelete(toremove);
                     appendContents(REMOVEFILE, "^@", fileName, "@");
-                    writeContents(join(BLOBS, commitContents.refToBlobs.get(i)), "^");
+                    writeContents(join(BLOBS, commitContents.refToBlobs.get(i)), "");
                     return true;
                 }
             }
@@ -171,7 +171,7 @@ public class Repository {
             for (String s : commitContents.refToBlobs) {
                 if (s.equals(fileHash)) {
                     restrictedDelete(toremove);
-                    writeContents(join(BLOBS, fileHash), "^");
+                    writeContents(join(BLOBS, fileHash), "");
 
                     return true;
                 }
@@ -190,7 +190,7 @@ public class Repository {
             if (s.equals(fileHash)) {
                 appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
                 restrictedDelete(toremove);
-                writeContents(join(BLOBS, fileHash), "^");
+                writeContents(join(BLOBS, fileHash), "");
                 return true;
             }
         }
@@ -501,7 +501,7 @@ public class Repository {
         for (int i = 0; i < size; i++) {
             boolean exist = false;
             for (int j = 0; j < psize; j++) {
-                if (arg.getRmHash().get(i).equals("^")) {
+                if (arg.getRmHash().get(i).length() == 0) {
                     continue;
                 }
                 if (parentContents.refToBlobs.get(j).equals(arg.getRmHash().get(i))) {
@@ -511,7 +511,7 @@ public class Repository {
                     psize--;
                     if (join(CWD, arg.getRmFile().get(i)).exists()) {
                         restrictedDelete(join(CWD, arg.getRmFile().get(i)));
-                        writeContents(join(BLOBS, arg.getRmHash().get(i)), "^");
+                        writeContents(join(BLOBS, arg.getRmHash().get(i)), "");
                     }
                 }
             }
@@ -543,7 +543,7 @@ public class Repository {
         for (int i = 0; i < size; i++) {
             boolean exist = false;
             for (int j = 0; j < psize; j++) {
-                if (parentContents.refToBlobs.get(j).equals("^")) {
+                if (parentContents.refToBlobs.get(j).length() == 0) {
                     continue;
                 }
                 if (parentContents.fileLocation.get(j).equals(removed.get(i))) {
