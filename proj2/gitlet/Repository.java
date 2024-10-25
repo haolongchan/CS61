@@ -107,7 +107,7 @@ public class Repository {
             List<String> blobName = plainFilenamesIn(BLOBS);
             for (String s : blobName) {
                 if (s.equals(fileHash)) {
-                    if (readContentsAsString(join(BLOBS, fileHash)).equals('^')) {
+                    if (readContentsAsString(join(BLOBS, fileHash)).length() != 1) {
                         return false;
                     }
                 }
@@ -637,8 +637,6 @@ public class Repository {
                     }
                 }
                 writeContents(HEAD, currentHash);
-
-                /* get current branch and save secure hash to it */
                 String currentBranch = readContentsAsString(CURRENT);
                 File currentBranchFile = join(BRANCHES, currentBranch);
                 writeContents(currentBranchFile, currentHash);
@@ -821,6 +819,7 @@ public class Repository {
                                 join(BLOBS, contents.refToBlobs.get(i))));
                     }
                     writeContents(HEAD, contents.currentHash);
+                    return;
                 }
             }
             System.out.println("No commit with that id exists.");
