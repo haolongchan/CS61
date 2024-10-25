@@ -124,6 +124,9 @@ public class Main {
                 } else if (args.length == 2) {
                     Repository.checkoutBranch(args[1]);
                 } else {
+                    if (!args[2].equals("--")) {
+                        System.out.println("Incorrect operands.");
+                    }
                     Repository.checkoutID(args[1], args[3]);
                     System.exit(0);
                 }

@@ -187,6 +187,13 @@ public class Repository {
                     return true;
                 }
             }
+        } else {
+            for (String s : addContents[0]) {
+                if (s.equals(fileHash)) {
+                    appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
+                    return true;
+                }
+            }
         }
         System.out.println("No reason to remove the file.");
         return false;
@@ -780,20 +787,35 @@ public class Repository {
                     }
                     PseudoCommit contents = readCommit(join(COMMITS,
                             readContentsAsString(join(BRANCHES, branchName))));
+                    List<String> blobFiles = plainFilenamesIn(BLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
                     List<String> allHash = new ArrayList<>(allFile.size());
-                    size = allFile.size();
-                    for (int j = 0; j < size; j++) {
+                    int sz = allFile.size();
+                    if (blobFiles == null) {
+                        System.out.println("There is an untracked file in the way; "
+                                + "delete it, or add and commit it first.");
+                        return;
+                    }
+                    if (blobFiles.isEmpty()) {
+                        System.out.println("There is an untracked file in the way; "
+                                + "delete it, or add and commit it first.");
+                        return;
+                    }
+                    for (int j = 0; j < sz; j++) {
                         allHash.add(sha1(readContentsAsString(join(CWD,
                                 allFile.get(j))), allFile.get(j)));
                     }
-                    for (String contentHash : contents.refToBlobs) {
-                        for (String fileHash : allHash) {
-                            if (contentHash.equals(fileHash)) {
-                                System.out.println("There is an untracked file in the way; "
-                                        + "delete it, or add and commit it first.");
-                                return;
+                    for (String fileHash : allHash) {
+                        boolean checked = false;
+                        for (String blobHash : blobFiles) {
+                            if (blobHash.equals(fileHash)) {
+                                checked = true;
                             }
+                        }
+                        if (!checked) {
+                            System.out.println("There is an untracked file in the way; "
+                                    + "delete it, or add and commit it first.");
+                            return;
                         }
                     }
                     writeContents(HEAD, contents.currentHash);
