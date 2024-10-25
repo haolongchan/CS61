@@ -790,8 +790,6 @@ public class Repository {
                             readContentsAsString(HEAD)));
                     List<String> blobFiles = plainFilenamesIn(BLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
-                    List<String> allHash = new ArrayList<>(allFile.size());
-                    int sz = allFile.size();
                     if (blobFiles == null && allFile != null) {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
@@ -801,10 +799,6 @@ public class Repository {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         return;
-                    }
-                    for (int j = 0; j < sz; j++) {
-                        allHash.add(sha1(readContentsAsString(join(CWD,
-                                allFile.get(j))), allFile.get(j)));
                     }
                     int branchSize = contents.fileLocation.size();
                     int headSize = headContents.fileLocation.size();
