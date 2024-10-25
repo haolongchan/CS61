@@ -705,9 +705,13 @@ public class Repository {
     public static boolean checkoutID(String id, String name) {
         try {
             String commitHash = readContentsAsString(HEAD);
+            String subId = id;
+            subId.substring(0, 6);
             while (commitHash.length() > 0) {
                 File commitFile = join(COMMITS, commitHash);
                 PseudoCommit contents = readCommit(commitFile);
+                String subCurrentHash = contents.currentHash;
+                subCurrentHash.substring(0, 6);
                 if (contents.currentHash.substring(0, 6).equals(id.substring(0, 6))) {
                     if (contents.fileLocation == null) {
                         System.out.println("File does not exist in that commit.");
