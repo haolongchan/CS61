@@ -188,18 +188,9 @@ public class Repository {
                     return true;
                 }
             }
-            System.out.println("No reason to remove the file.");
-            return false;
         }
-
-        for (String s : addContents[0]) {
-            if (s.equals(fileHash)) {
-                appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
-                return true;
-            }
-        }
-        System.out.println("No reason to remove the file.");
-        return false;
+        appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
+        return true;
     }
 
 
@@ -283,6 +274,10 @@ public class Repository {
     }
 
     public static void log() {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         String currentHash = readContentsAsString(HEAD);
         File currentCommit = join(COMMITS, currentHash);
         PseudoCommit currentContents = readCommit(currentCommit);
@@ -303,6 +298,10 @@ public class Repository {
     }
 
     public static void globallog() {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         List<String> fileName = plainFilenamesIn(COMMITS);
         int size = fileName.size();
         for (int i = 0; i < size; i++) {
@@ -321,6 +320,10 @@ public class Repository {
     }
 
     public static boolean find(String msg) {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return false;
+        }
         List<String> fileName = plainFilenamesIn(COMMITS);
         int size = fileName.size();
         boolean found = false;
@@ -337,6 +340,10 @@ public class Repository {
     }
 
     public static void status() {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         List<String> branchName = plainFilenamesIn(BRANCHES);
         int size = branchName.size();
         Collections.sort(branchName);
@@ -391,6 +398,10 @@ public class Repository {
     }
 
     public static LinkedList<String>[] readAddStage() {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return null;
+        }
         LinkedList<String>[] stage = new LinkedList[2];
         stage[0] = new LinkedList<>();
         stage[1] = new LinkedList<>();
@@ -426,6 +437,10 @@ public class Repository {
     }
 
     public static LinkedList<String>[] readRemoveStage() {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return null;
+        }
         LinkedList<String>[] stage = new LinkedList[2];
         stage[0] = new LinkedList<>();
         stage[1] = new LinkedList<>();
@@ -570,6 +585,9 @@ public class Repository {
     * */
     public static void createcommits(Commit arg) {
         try {
+            if (!GITLET_DIR.exists()) {
+                System.out.println("Not in an initialized Gitlet directory.");
+            }
             String timestamp = Commit.formatDate(arg.getTimestamp());
             String parentHash = readContentsAsString(HEAD);
             arg.addparentHash(parentHash);
@@ -650,6 +668,9 @@ public class Repository {
 
     public static boolean createBranch(String branchName) {
         try {
+            if (!GITLET_DIR.exists()) {
+                System.out.println("Not in an initialized Gitlet directory.");
+            }
             File branchFile = join(BRANCHES, branchName);
             if (branchFile.exists()) {
                 return false;
@@ -664,6 +685,10 @@ public class Repository {
     }
 
     public static boolean removeBranch(String branchName) {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return false;
+        }
         if (!join(BRANCHES, branchName).exists()) {
             System.out.println("A branch with that name does not exist.");
             return false;
@@ -677,6 +702,9 @@ public class Repository {
 
     public static boolean checkoutName(String name) {
         try {
+            if (!GITLET_DIR.exists()) {
+                System.out.println("Not in an initialized Gitlet directory.");
+            }
             PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
 
             if (contents.fileLocation == null) {
@@ -704,6 +732,9 @@ public class Repository {
 
     public static boolean checkoutID(String id, String name) {
         try {
+            if (!GITLET_DIR.exists()) {
+                System.out.println("Not in an initialized Gitlet directory.");
+            }
             String commitHash = readContentsAsString(HEAD);
             String subId = id;
             subId.substring(0, 6);
@@ -713,7 +744,7 @@ public class Repository {
                 String subCurrentHash = contents.currentHash;
                 subCurrentHash.substring(0, 6);
                 if (contents.currentHash.substring(0, 6).equals(id.substring(0, 6))) {
-                    if (contents.fileLocation == null) {
+                    if (!contents.fileLocation.equals(name)) {
                         System.out.println("File does not exist in that commit.");
                         return false;
                     }
@@ -742,6 +773,9 @@ public class Repository {
 
     public static void checkoutBranch(String branchName) {
         try {
+            if (!GITLET_DIR.exists()) {
+                System.out.println("Not in an initialized Gitlet directory.");
+            }
             List<String> branch = plainFilenamesIn(BRANCHES);
             int size = branch.size();
             for (int i = 0; i < size; i++) {
@@ -790,6 +824,9 @@ public class Repository {
 
     public static void reset(String id) {
         try {
+            if (!GITLET_DIR.exists()) {
+                System.out.println("Not in an initialized Gitlet directory.");
+            }
             List<String> commitFile = plainFilenamesIn(COMMITS);
             for (String file : commitFile) {
                 PseudoCommit current = readCommit(join(COMMITS, file));
@@ -850,6 +887,9 @@ public class Repository {
 
     public static void createcommitassetup(Commit arg) {
         try {
+            if (!GITLET_DIR.exists()) {
+                System.out.println("Not in an initialized Gitlet directory.");
+            }
             String timestamp = Commit.formatDate(arg.getTimestamp());
             String currentHash = "";
             if (arg.getRefToBlobs() == null) {
