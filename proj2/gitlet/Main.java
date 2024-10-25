@@ -123,7 +123,6 @@ public class Main {
                     }
                 } else if (args[2].equals("--")) {
                     if (!Repository.checkoutID(args[1], args[3])) {
-                        System.out.println("No commit with that id exists.");
                         System.exit(0);
                     }
                 } else {

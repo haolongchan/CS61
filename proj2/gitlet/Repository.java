@@ -710,6 +710,7 @@ public class Repository {
                 PseudoCommit contents = readCommit(commitFile);
                 if (contents.currentHash.equals(id)) {
                     if (contents.fileLocation == null) {
+                        System.out.println("File does not exist in that commit.");
                         return false;
                     }
                     int size = contents.fileLocation.size();
@@ -726,6 +727,7 @@ public class Repository {
                         }
                     }
                 }
+                System.out.println("No commit with that id exists.");
                 commitHash = contents.parentHash;
             }
             return false;
