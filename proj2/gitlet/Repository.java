@@ -786,25 +786,27 @@ public class Repository {
                     }
                     PseudoCommit contents = readCommit(join(COMMITS,
                             readContentsAsString(join(BRANCHES, branchName))));
-//                    List<String> blobFiles = plainFilenamesIn(BLOBS);
+                    List<String> blobFiles = plainFilenamesIn(BLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
-                    PseudoCommit currentBranch = readCommit(join(COMMITS,
-                            readContentsAsString(join(BRANCHES,
-                                    readContentsAsString(CURRENT)))));
+                    List<String> allHash = new ArrayList<>(allFile.size());
                     int sz = allFile.size();
-                    if (currentBranch.fileLocation == null && allFile != null) {
+                    if (blobFiles == null && allFile != null) {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         return;
                     }
-                    if (currentBranch.fileLocation.isEmpty() && !allFile.isEmpty()) {
+                    if (blobFiles.isEmpty() && !allFile.isEmpty()) {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         return;
                     }
-                    for (String fileHash : allFile) {
+                    for (int j = 0; j < sz; j++) {
+                        allHash.add(sha1(readContentsAsString(join(CWD,
+                                allFile.get(j))), allFile.get(j)));
+                    }
+                    for (String fileHash : allHash) {
                         boolean checked = false;
-                        for (String blobHash : currentBranch.fileLocation) {
+                        for (String blobHash : blobFiles) {
                             if (blobHash.equals(fileHash)) {
                                 checked = true;
                             }
@@ -834,7 +836,6 @@ public class Repository {
             throw new RuntimeException(e);
         }
     }
-
     public static void reset(String id) {
         try {
             if (!GITLET_DIR.exists()) {
