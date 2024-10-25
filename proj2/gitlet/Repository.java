@@ -490,8 +490,8 @@ public class Repository {
     private static void partOfCommits(Commit arg) {
         int size = arg.getRmHash().size();
         PseudoCommit parentContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-        String currentHash = sha1(arg.getMessage(), arg.getTimestamp(),
-                arg.getRmHash(), arg.getRmFile());
+        String currentHash = sha1(arg.getMessage(), arg.getTimestamp().toString(),
+                arg.getRmHash().toString(), arg.getRmFile().toString());
         int psize = parentContents.refToBlobs.size();
         for (int i = 0; i < size; i++) {
             boolean exist = false;
@@ -591,11 +591,10 @@ public class Repository {
             String timestamp = Commit.formatDate(arg.getTimestamp());
             String parentHash = readContentsAsString(HEAD);
             arg.addparentHash(parentHash);
-            String currentHash = "";
+            String currentHash = sha1(arg.getMessage(), arg.getTimestamp().toString(),
+                    arg.getRmHash().toString(), arg.getRmFile().toString());
             if (arg.getRefToBlobs() == null) {
                 partOfCommits(arg);
-                currentHash = sha1(arg.getMessage(), arg.getTimestamp(),
-                        arg.getRmHash(), arg.getRmFile());
                 File newCommit = join(COMMITS, currentHash);
                 newCommit.createNewFile();
                 writeContents(newCommit, arg.getMessage(), "@", timestamp, "@",
@@ -655,9 +654,7 @@ public class Repository {
                     }
                 }
                 writeContents(HEAD, currentHash);
-                String currentBranch = readContentsAsString(CURRENT);
-                File currentBranchFile = join(BRANCHES, currentBranch);
-                writeContents(currentBranchFile, currentHash);
+                writeContents(join(BRANCHES, readContentsAsString(CURRENT)), currentHash);
                 writeContents(ADDFILE, "");
                 writeContents(REMOVEFILE, "");
             }
@@ -744,10 +741,6 @@ public class Repository {
                 String subCurrentHash = contents.currentHash;
                 subCurrentHash.substring(0, 6);
                 if (contents.currentHash.substring(0, 6).equals(id.substring(0, 6))) {
-                    if (!contents.fileLocation.equals(name)) {
-                        System.out.println("File does not exist in that commit.");
-                        return false;
-                    }
                     int size = contents.fileLocation.size();
                     for (int i = 0; i < size; i++) {
                         if (contents.fileLocation.get(i).equals(name)) {
@@ -761,6 +754,8 @@ public class Repository {
                             return true;
                         }
                     }
+                    System.out.println("File does not exist in that commit.");
+                    return false;
                 }
                 commitHash = contents.parentHash;
             }
