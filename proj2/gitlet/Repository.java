@@ -107,7 +107,9 @@ public class Repository {
             List<String> blobName = plainFilenamesIn(BLOBS);
             for (String s : blobName) {
                 if (s.equals(fileHash)) {
-                    return false;
+                    if (readContentsAsString(join(BLOBS, fileHash)).equals('^')) {
+                        return false;
+                    }
                 }
             }
 
@@ -141,13 +143,16 @@ public class Repository {
         }
         if (!toremove.exists()) {
             PseudoCommit commitContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-            for (String s : commitContents.fileLocation) {
-                if (s.equals(fileName)) {
+            int size = commitContents.fileLocation.size();
+            for (int i = 0; i < size; i++) {
+                if (commitContents.fileLocation.get(i).equals(fileName)) {
                     restrictedDelete(toremove);
                     appendContents(REMOVEFILE, "^@", fileName, "@");
+                    writeContents(join(BLOBS, commitContents.refToBlobs.get(i)), "^");
                     return true;
                 }
             }
+
             System.out.println("No reason to remove the file.");
             return false;
         }
@@ -166,6 +171,8 @@ public class Repository {
             for (String s : commitContents.refToBlobs) {
                 if (s.equals(fileHash)) {
                     restrictedDelete(toremove);
+                    writeContents(join(BLOBS, fileHash), "^");
+
                     return true;
                 }
             }
@@ -177,6 +184,7 @@ public class Repository {
                 if (s.equals(fileHash)) {
                     appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
                     restrictedDelete(toremove);
+                    writeContents(join(BLOBS, fileHash), "^");
                     return true;
                 }
             }
@@ -467,7 +475,8 @@ public class Repository {
     private static void partOfCommits(Commit arg) {
         int size = arg.getRmHash().size();
         PseudoCommit parentContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-        String currentHash = sha1(arg.getMessage(), arg.getTimestamp(), arg.getRmHash(), arg.getRmFile());
+        String currentHash = sha1(arg.getMessage(), arg.getTimestamp(),
+                arg.getRmHash(), arg.getRmFile());
         int psize = parentContents.refToBlobs.size();
         for (int i = 0; i < size; i++) {
             boolean exist = false;
@@ -482,6 +491,7 @@ public class Repository {
                     psize--;
                     if (join(CWD, arg.getRmFile().get(i)).exists()) {
                         restrictedDelete(join(CWD, arg.getRmFile().get(i)));
+                        writeContents(join(BLOBS, arg.getRmHash().get(i)), "^");
                     }
                 }
             }
@@ -518,11 +528,13 @@ public class Repository {
                 }
                 if (parentContents.fileLocation.get(j).equals(removed.get(i))) {
                     exist = true;
+                    String deleteHash = parentContents.refToBlobs.get(j);
                     parentContents.refToBlobs.remove(j);
                     parentContents.fileLocation.remove(j);
                     psize--;
                     if (join(CWD, removed.get(i)).exists()) {
                         restrictedDelete(join(CWD, removed.get(i)));
+                        writeContents(join(BLOBS, deleteHash), "^");
                     }
                 }
             }
@@ -607,7 +619,8 @@ public class Repository {
                 }
             }
             if (staged.size() > 0) {
-                currentHash = sha1(arg.getMessage(), timestamp, staged.toString(), parentHash, removed.toString());
+                currentHash = sha1(arg.getMessage(), timestamp, staged.toString(),
+                        parentHash, removed.toString());
                 File commitFile = join(COMMITS, currentHash);
                 commitFile.createNewFile();
                 appendContents(commitFile, arg.getMessage(), "@", timestamp,
