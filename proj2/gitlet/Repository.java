@@ -727,9 +727,9 @@ public class Repository {
                         }
                     }
                 }
-                System.out.println("No commit with that id exists.");
                 commitHash = contents.parentHash;
             }
+            System.out.println("No commit with that id exists.");
             return false;
         } catch (IOException e) {
             throw new RuntimeException(e);
