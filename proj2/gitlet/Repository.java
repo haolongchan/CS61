@@ -177,22 +177,21 @@ public class Repository {
                 }
             }
         }
-        if (addContents[0].isEmpty()) {
-            PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-            for (String s : contents.refToBlobs) {
-                if (s.equals(fileHash)) {
-                    appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
-                    restrictedDelete(toremove);
-                    writeContents(join(BLOBS, fileHash), "^");
-                    return true;
-                }
-            }
-        } else {
+        if (!addContents[0].isEmpty()) {
             for (String s : addContents[0]) {
                 if (s.equals(fileHash)) {
                     appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
                     return true;
                 }
+            }
+        }
+        PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+        for (String s : contents.refToBlobs) {
+            if (s.equals(fileHash)) {
+                appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
+                restrictedDelete(toremove);
+                writeContents(join(BLOBS, fileHash), "^");
+                return true;
             }
         }
         System.out.println("No reason to remove the file.");
