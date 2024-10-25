@@ -121,12 +121,11 @@ public class Main {
                         System.out.println("File does not exist in that commit.");
                         System.exit(0);
                     }
-                } else if (args[2].equals("--")) {
-                    if (!Repository.checkoutID(args[1], args[3])) {
-                        System.exit(0);
-                    }
-                } else {
+                } else if (args.length == 2) {
                     Repository.checkoutBranch(args[1]);
+                } else {
+                    Repository.checkoutID(args[1], args[3]);
+                    System.exit(0);
                 }
                 break;
 
