@@ -708,7 +708,7 @@ public class Repository {
             while (commitHash.length() > 0) {
                 File commitFile = join(COMMITS, commitHash);
                 PseudoCommit contents = readCommit(commitFile);
-                if (contents.currentHash.equals(id)) {
+                if (contents.currentHash.substring(0, 6).equals(id.substring(0, 6))) {
                     if (contents.fileLocation == null) {
                         System.out.println("File does not exist in that commit.");
                         return false;
@@ -789,7 +789,7 @@ public class Repository {
             List<String> commitFile = plainFilenamesIn(COMMITS);
             for (String file : commitFile) {
                 PseudoCommit current = readCommit(join(COMMITS, file));
-                if (current.currentHash.equals(id)) {
+                if (current.currentHash.substring(0, 6).equals(id.substring(0, 6))) {
                     List<String> blobFiles = plainFilenamesIn(BLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
                     List<String> allHash = new ArrayList<>(allFile.size());
