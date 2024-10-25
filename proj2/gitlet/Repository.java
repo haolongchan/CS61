@@ -176,7 +176,6 @@ public class Repository {
                     return true;
                 }
             }
-            return true;
         }
         if (addContents[0].isEmpty()) {
             PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
@@ -189,8 +188,8 @@ public class Repository {
                 }
             }
         }
-        appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
-        return true;
+        System.out.println("No reason to remove the file.");
+        return false;
     }
 
 
