@@ -791,12 +791,12 @@ public class Repository {
                     List<String> allFile = plainFilenamesIn(CWD);
                     List<String> allHash = new ArrayList<>(allFile.size());
                     int sz = allFile.size();
-                    if (blobFiles == null) {
+                    if (blobFiles == null && allFile != null) {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         return;
                     }
-                    if (blobFiles.isEmpty()) {
+                    if (blobFiles.isEmpty() && !allFile.isEmpty()) {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         return;
