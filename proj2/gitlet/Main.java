@@ -105,7 +105,7 @@ public class Main {
                     System.exit(0);
                 }
                 break;
-            case "rm_branch":
+            case "rm-branch":
                 if (args.length != 2) {
                     System.out.println("Incorrect operands.");
                     System.exit(0);

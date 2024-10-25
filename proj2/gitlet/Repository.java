@@ -775,7 +775,7 @@ public class Repository {
                         writeContents(writeFile, readContentsAsString(
                                 join(BLOBS, contents.refToBlobs.get(j))));
                     }
-
+                    return;
                 }
             }
             System.out.println("No such branch exists.");
