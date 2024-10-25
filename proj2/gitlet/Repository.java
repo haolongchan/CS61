@@ -789,6 +789,9 @@ public class Repository {
                     List<String> blobFiles = plainFilenamesIn(BLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
                     List<String> allHash = new ArrayList<>(allFile.size());
+                    PseudoCommit currentBranch = readCommit(join(COMMITS,
+                            readContentsAsString(join(BRANCHES,
+                                    readContentsAsString(CURRENT)))));
                     int sz = allFile.size();
                     if (blobFiles == null && allFile != null) {
                         System.out.println("There is an untracked file in the way; "
@@ -804,9 +807,9 @@ public class Repository {
                         allHash.add(sha1(readContentsAsString(join(CWD,
                                 allFile.get(j))), allFile.get(j)));
                     }
-                    for (String fileHash : allHash) {
+                    for (String fileHash : allFile) {
                         boolean checked = false;
-                        for (String blobHash : blobFiles) {
+                        for (String blobHash : currentBranch.fileLocation) {
                             if (blobHash.equals(fileHash)) {
                                 checked = true;
                             }
@@ -850,12 +853,12 @@ public class Repository {
                     List<String> allFile = plainFilenamesIn(CWD);
                     List<String> allHash = new ArrayList<>(allFile.size());
                     int size = allFile.size();
-                    if (blobFiles == null) {
+                    if (blobFiles == null && allFile != null) {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         return;
                     }
-                    if (blobFiles.isEmpty()) {
+                    if (blobFiles.isEmpty() && !allFile.isEmpty()) {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         return;
@@ -891,6 +894,8 @@ public class Repository {
                                 join(BLOBS, current.refToBlobs.get(i))));
                     }
                     writeContents(HEAD, current.currentHash);
+                    writeContents(ADDFILE, "");
+                    writeContents(REMOVEFILE, "");
                     return;
                 }
             }
