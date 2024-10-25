@@ -786,26 +786,21 @@ public class Repository {
                     }
                     PseudoCommit contents = readCommit(join(COMMITS,
                             readContentsAsString(join(BRANCHES, branchName))));
-                    List<String> blobFiles = plainFilenamesIn(BLOBS);
+//                    List<String> blobFiles = plainFilenamesIn(BLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
-                    List<String> allHash = new ArrayList<>(allFile.size());
                     PseudoCommit currentBranch = readCommit(join(COMMITS,
                             readContentsAsString(join(BRANCHES,
                                     readContentsAsString(CURRENT)))));
                     int sz = allFile.size();
-                    if (blobFiles == null && allFile != null) {
+                    if (currentBranch.fileLocation == null && allFile != null) {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         return;
                     }
-                    if (blobFiles.isEmpty() && !allFile.isEmpty()) {
+                    if (currentBranch.fileLocation.isEmpty() && !allFile.isEmpty()) {
                         System.out.println("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         return;
-                    }
-                    for (int j = 0; j < sz; j++) {
-                        allHash.add(sha1(readContentsAsString(join(CWD,
-                                allFile.get(j))), allFile.get(j)));
                     }
                     for (String fileHash : allFile) {
                         boolean checked = false;
