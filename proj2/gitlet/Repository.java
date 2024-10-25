@@ -790,21 +790,35 @@ public class Repository {
             for (String file : commitFile) {
                 PseudoCommit current = readCommit(join(COMMITS, file));
                 if (current.currentHash.equals(id)) {
-                    PseudoCommit contents = readCommit(join(COMMITS, file));
+                    List<String> blobFiles = plainFilenamesIn(BLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
                     List<String> allHash = new ArrayList<>(allFile.size());
                     int size = allFile.size();
+                    if (blobFiles == null) {
+                        System.out.println("There is an untracked file in the way; "
+                                + "delete it, or add and commit it first.");
+                        return;
+                    }
+                    if (blobFiles.isEmpty()) {
+                        System.out.println("There is an untracked file in the way; "
+                                + "delete it, or add and commit it first.");
+                        return;
+                    }
                     for (int i = 0; i < size; i++) {
                         allHash.add(sha1(readContentsAsString(join(CWD,
                                 allFile.get(i))), allFile.get(i)));
                     }
-                    for (String contentHash : contents.refToBlobs) {
-                        for (String fileHash : allHash) {
-                            if (contentHash.equals(fileHash)) {
-                                System.out.println("There is an untracked file in the way; "
-                                       + "delete it, or add and commit it first.");
-                                return;
+                    for (String fileHash : allHash) {
+                        boolean checked = false;
+                        for (String blobHash : blobFiles) {
+                            if (blobHash.equals(fileHash)) {
+                                checked = true;
                             }
+                        }
+                        if (!checked) {
+                            System.out.println("There is an untracked file in the way; "
+                                    + "delete it, or add and commit it first.");
+                            return;
                         }
                     }
                     for (int i = 0; i < size; ++i) {
@@ -813,14 +827,14 @@ public class Repository {
                             restrictedDelete(dlt);
                         }
                     }
-                    size = contents.refToBlobs.size();
+                    size = current.refToBlobs.size();
                     for (int i = 0; i < size; ++i) {
-                        File writeFile = join(CWD, contents.fileLocation.get(i));
+                        File writeFile = join(CWD, current.fileLocation.get(i));
                         writeFile.createNewFile();
                         writeContents(writeFile, readContentsAsString(
-                                join(BLOBS, contents.refToBlobs.get(i))));
+                                join(BLOBS, current.refToBlobs.get(i))));
                     }
-                    writeContents(HEAD, contents.currentHash);
+                    writeContents(HEAD, current.currentHash);
                     return;
                 }
             }
