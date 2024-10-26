@@ -997,8 +997,8 @@ public class Repository {
                                       String ancestorHash, int givenSize, int currentSize,
                                       PseudoCommit givenCommit, PseudoCommit currentCommit) {
         boolean checked = false;
-        if (readContentsAsString(ADDFILE).length() == 0 ||
-                readContentsAsString(REMOVEFILE).length() == 0) {
+        if (readContentsAsString(ADDFILE).length() == 0
+                || readContentsAsString(REMOVEFILE).length() == 0) {
             System.out.println("You have uncommitted changes.");
             System.exit(0);
         }
@@ -1091,9 +1091,21 @@ public class Repository {
         }
     }
 
-    private static void lackGiven(String splitHash, String currentHash, String fileName, int
-            givenSize, PseudoCommit givenCommit, int currentSize, PseudoCommit currentCommit,
-                                  PseudoCommit splitCommit, int splitSize) {
+    private static void lackGiven(String splitHash, String currentHash, String fileName,
+                                  PseudoCommit givenCommit, PseudoCommit currentCommit,
+                                  PseudoCommit splitCommit) {
+        int givenSize = givenCommit.fileLocation.size();
+        int currentSize = currentCommit.fileLocation.size();
+        int splitSize = splitCommit.fileLocation.size();
+        if (givenSize == 1 && givenCommit.fileLocation.get(0).equals("")) {
+            givenSize = 0;
+        }
+        if (currentSize == 1 && currentCommit.fileLocation.get(0).equals("")) {
+            currentSize = 0;
+        }
+        if (splitSize == 1 && splitCommit.fileLocation.get(0).equals("")) {
+            splitSize = 0;
+        }
         if (splitHash != currentHash) {
             // case: 3.2
             String currentContent = readContentsAsString(join(CWD, fileName));
@@ -1189,10 +1201,8 @@ public class Repository {
     }
 
     public static void merge(String branchName) {
-        String ancestorHash = lca(branchName, readContentsAsString(join(BRANCHES,
-                readContentsAsString(CURRENT))));
+        String ancestorHash = lca(branchName, readContentsAsString(CURRENT));
         List<String> allBranchNames = plainFilenamesIn(BRANCHES);
-        boolean checked = false;
         Set<String> allFileName = new HashSet<>();
         PseudoCommit givenCommit = readCommit(join(COMMITS,
                 readContentsAsString(join(BRANCHES, branchName))));
@@ -1227,7 +1237,6 @@ public class Repository {
         }
         checkForMerge(allBranchNames, branchName, ancestorHash, givenSize, currentSize,
                 givenCommit, currentCommit);
-
         for (String fileName : allFileName) {
             String givenHash = "";
             String currentHash = "";
@@ -1256,8 +1265,8 @@ public class Repository {
                         threeFiles(splitHash, currentHash, givenHash, givenSize, fileName,
                                 givenCommit);
                     } else {
-                        lackGiven(splitHash, currentHash, fileName, givenSize, givenCommit,
-                                currentSize, currentCommit, splitCommit, splitSize);
+                        lackGiven(splitHash, currentHash, fileName, givenCommit,
+                                currentCommit, splitCommit);
                     }
                 } else {
                     lackCurrent(splitHash, givenHash, fileName, givenSize, givenCommit);
@@ -1269,6 +1278,4 @@ public class Repository {
         String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT);
         prepareForCommit(message);
     }
-
-
 }
