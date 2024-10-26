@@ -825,6 +825,11 @@ public class Repository {
                                 if (!contents.refToBlobs.get(j).equals(sha1(readContentsAsString(
                                         join(CWD, contents.fileLocation.get(j))),
                                                 contents.fileLocation.get(j)))) {
+                                    if (join(BLOBS, sha1(readContentsAsString(join(CWD,
+                                            contents.fileLocation.get(j))),
+                                            contents.fileLocation.get(j))).exists()) {
+                                        continue;
+                                    }
                                     System.out.println("There is an untracked file in the way; "
                                             + "delete it, or add and commit it first.");
                                     return;
