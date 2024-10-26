@@ -599,9 +599,7 @@ public class Repository {
     * */
     public static void createcommits(Commit arg) {
         try {
-            if (!GITLET_DIR.exists()) {
-                System.out.println("Not in an initialized Gitlet directory.");
-            }
+            checkGitlet();
             String timestamp = Commit.formatDate(arg.getTimestamp());
             String parentHash = readContentsAsString(HEAD);
             arg.addparentHash(parentHash);
@@ -679,9 +677,7 @@ public class Repository {
 
     public static boolean createBranch(String branchName) {
         try {
-            if (!GITLET_DIR.exists()) {
-                System.out.println("Not in an initialized Gitlet directory.");
-            }
+            checkGitlet();
             File branchFile = join(BRANCHES, branchName);
             if (branchFile.exists()) {
                 return false;
@@ -713,9 +709,7 @@ public class Repository {
 
     public static boolean checkoutName(String name) {
         try {
-            if (!GITLET_DIR.exists()) {
-                System.out.println("Not in an initialized Gitlet directory.");
-            }
+            checkGitlet();
             PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
 
             if (contents.fileLocation == null) {
@@ -746,9 +740,7 @@ public class Repository {
 
     public static boolean checkoutID(String id, String name) {
         try {
-            if (!GITLET_DIR.exists()) {
-                System.out.println("Not in an initialized Gitlet directory.");
-            }
+            checkGitlet();
             String commitHash = readContentsAsString(HEAD);
             String subId = id;
             subId.substring(0, 6);
@@ -786,23 +778,33 @@ public class Repository {
         }
     }
 
+    private static void checkGitlet() {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            System.exit(0);
+        }
+    }
+
+    private static PseudoCommit getHeadCommit() {
+        return readCommit(join(COMMITS, readContentsAsString(HEAD)));
+    }
+
+    private static PseudoCommit getNewCommit(String branchName) {
+        return readCommit(join(COMMITS, readContentsAsString(join(BRANCHES, branchName))));
+    }
+
     public static void checkoutBranch(String branchName) {
         try {
-            if (!GITLET_DIR.exists()) {
-                System.out.println("Not in an initialized Gitlet directory.");
-            }
+            checkGitlet();
             List<String> branch = plainFilenamesIn(BRANCHES);
-            int size = branch.size();
-            for (int i = 0; i < size; i++) {
+            for (int i = 0; i < branch.size(); i++) {
                 if (branch.get(i).equals(branchName)) {
                     if (readContentsAsString(CURRENT).equals(branchName)) {
                         System.out.println("No need to checkout the current branch.");
                         return;
                     }
-                    PseudoCommit contents = readCommit(join(COMMITS,
-                            readContentsAsString(join(BRANCHES, branchName))));
-                    PseudoCommit headContents = readCommit(join(COMMITS,
-                            readContentsAsString(HEAD)));
+                    PseudoCommit contents = getNewCommit(branchName);
+                    PseudoCommit headContents = getHeadCommit();
                     List<String> allFile = plainFilenamesIn(CWD);
                     int branchSize = contents.fileLocation.size();
                     int headSize = headContents.fileLocation.size();
@@ -871,11 +873,10 @@ public class Repository {
             throw new RuntimeException(e);
         }
     }
+
     public static void reset(String id) {
         try {
-            if (!GITLET_DIR.exists()) {
-                System.out.println("Not in an initialized Gitlet directory.");
-            }
+            checkGitlet();
             List<String> commitFile = plainFilenamesIn(COMMITS);
             for (String file : commitFile) {
                 PseudoCommit current = readCommit(join(COMMITS, file));
@@ -928,6 +929,8 @@ public class Repository {
                                 join(BLOBS, current.refToBlobs.get(i))));
                     }
                     writeContents(HEAD, current.currentHash);
+                    writeContents(join(BRANCHES, readContentsAsString(CURRENT)),
+                            current.currentHash);
                     writeContents(ADDFILE, "");
                     writeContents(REMOVEFILE, "");
                     return;
@@ -941,9 +944,7 @@ public class Repository {
 
     public static void createcommitassetup(Commit arg) {
         try {
-            if (!GITLET_DIR.exists()) {
-                System.out.println("Not in an initialized Gitlet directory.");
-            }
+            checkGitlet();
             String timestamp = Commit.formatDate(arg.getTimestamp());
             String currentHash = "";
             if (arg.getRefToBlobs() == null) {
