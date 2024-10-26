@@ -140,8 +140,12 @@ public class Main {
                 Repository.reset(args[1]);
                 break;
 
-            case "test":
-                Repository.test();
+            case "merge":
+                if (args.length != 2) {
+                    System.out.println("Incorrect operands.");
+                    System.exit(0);
+                }
+
                 break;
 
             default:

@@ -1,5 +1,7 @@
 package gitlet;
 
+import org.checkerframework.checker.units.qual.C;
+
 import java.io.File;
 import java.util.*;
 import java.io.IOException;
@@ -966,13 +968,45 @@ public class Repository {
 
     }
 
-    public static void test() {
-        PseudoCommit contents = readCommit(join(COMMITS,
-                readContentsAsString(join(BRANCHES, "other"))));
-        PseudoCommit headContents = readCommit(join(COMMITS,
-                readContentsAsString(HEAD)));
-        System.out.println(contents.refToBlobs.size());
-        System.out.println(contents.fileLocation.size());
+    private static String Lca(String givenBranch, String currentBranch) {
+        PseudoCommit givenCommit = readCommit(join(COMMITS,
+                readContentsAsString(join(BRANCHES, givenBranch))));
+        PseudoCommit currentCommit = readCommit(join(COMMITS,
+                readContentsAsString(join(CURRENT, currentBranch))));
+        List<String> givenParentBranch = new ArrayList<>();
+        String parentHash = givenCommit.currentHash;
+        List<String> currentParentBranch = new ArrayList<>();
+        String currentHash = currentCommit.currentHash;
+        while (parentHash != null) {
+            givenParentBranch.add(parentHash);
+            parentHash = readCommit(join(COMMITS, parentHash)).parentHash;
+        }
+        while (currentParentBranch != null) {
+            currentParentBranch.add(currentHash);
+            currentHash = readCommit(join(COMMITS, currentHash)).parentHash;
+        }
+        for (String s : givenParentBranch) {
+            for (String ss : currentParentBranch) {
+                if (s.equals(ss)) {
+                    return s;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static void merge(String branchName) {
+        String ancestorHash = Lca(branchName, readContentsAsString(join(BRANCHES,
+                readContentsAsString(CURRENT))));
+        if (branchName.equals(ancestorHash)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
+        }
+        if (readContentsAsString(join(BRANCHES, readContentsAsString(CURRENT))).
+                equals(ancestorHash)) {
+            System.out.println("Current branch fast-forwarded.");
+        }
+
     }
 
 
