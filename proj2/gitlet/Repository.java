@@ -113,9 +113,9 @@ public class Repository {
                 }
             }
 
-            if (!addContents[0].isEmpty()) {
-                for (String s : addContents[0]) {
-                    if (s.equals(fileHash)) {
+            if (!addContents[1].isEmpty()) {
+                for (String s : addContents[1]) {
+                    if (s.equals(fileName)) {
                         return false;
                     }
                 }
@@ -160,8 +160,8 @@ public class Repository {
         LinkedList<String>[] addContents = readAddStage();
         LinkedList<String>[] removeContents = readRemoveStage();
         if (!removeContents[0].isEmpty()) {
-            for (String s : removeContents[0]) {
-                if (s.equals(fileHash)) {
+            for (String s : removeContents[1]) {
+                if (s.equals(fileName)) {
                     System.out.println("No reason to remove the file.");
                     return false;
                 }
@@ -178,8 +178,8 @@ public class Repository {
             }
         }
         if (!addContents[0].isEmpty()) {
-            for (String s : addContents[0]) {
-                if (s.equals(fileHash)) {
+            for (String s : addContents[1]) {
+                if (s.equals(fileName)) {
                     appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
                     return true;
                 }
