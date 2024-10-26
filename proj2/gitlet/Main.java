@@ -145,7 +145,7 @@ public class Main {
                     System.out.println("Incorrect operands.");
                     System.exit(0);
                 }
-
+                Repository.merge(args[1]);
                 break;
 
             default:
