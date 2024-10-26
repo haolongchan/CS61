@@ -41,12 +41,12 @@ public class Repository {
 //    public static String blobHash = "";
 
     private static class PseudoCommit {
-        static String message;
-        static String timestamp;
-        static String parentHash;
-        static String currentHash;
-        static LinkedList<String> refToBlobs;
-        static LinkedList<String> fileLocation;
+        String message;
+        String timestamp;
+        String parentHash;
+        String currentHash;
+        LinkedList<String> refToBlobs;
+        LinkedList<String> fileLocation;
         private PseudoCommit(String msg, String tms, String prtH, String ha,
                              LinkedList<String> ref, LinkedList<String> loc) {
             message = msg;
@@ -107,7 +107,7 @@ public class Repository {
             List<String> blobName = plainFilenamesIn(BLOBS);
             for (String s : blobName) {
                 if (s.equals(fileHash)) {
-                    if (readContentsAsString(join(BLOBS, fileHash)).length() != 1) {
+                    if (!readContentsAsString(join(BLOBS, fileHash)).isEmpty()) {
                         return false;
                     }
                 }
@@ -144,6 +144,9 @@ public class Repository {
         if (!toremove.exists()) {
             PseudoCommit commitContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
             int size = commitContents.fileLocation.size();
+            if (size == 1 && commitContents.fileLocation.get(0).equals("")) {
+                size = 0;
+            }
             for (int i = 0; i < size; i++) {
                 if (commitContents.fileLocation.get(i).equals(fileName)) {
                     restrictedDelete(toremove);
@@ -498,6 +501,9 @@ public class Repository {
         String currentHash = sha1(arg.getMessage(), arg.getTimestamp().toString(),
                 arg.getRmHash().toString(), arg.getRmFile().toString());
         int psize = parentContents.refToBlobs.size();
+        if (psize == 1 && parentContents.refToBlobs.get(0).equals("")) {
+            psize = 0;
+        }
         for (int i = 0; i < size; i++) {
             boolean exist = false;
             for (int j = 0; j < psize; j++) {
@@ -540,6 +546,9 @@ public class Repository {
         int size = removed.size();
         PseudoCommit parentContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
         int psize = parentContents.refToBlobs.size();
+        if (psize == 1 && parentContents.refToBlobs.get(0).equals("")) {
+            psize = 0;
+        }
         for (int i = 0; i < size; i++) {
             boolean exist = false;
             for (int j = 0; j < psize; j++) {
@@ -713,6 +722,9 @@ public class Repository {
                 return false;
             }
             int size = contents.fileLocation.size();
+            if (size == 1 && contents.fileLocation.get(0).equals("")) {
+                size = 0;
+            }
             for (int i = 0; i < size; i++) {
                 if (contents.fileLocation.get(i).equals(name)) {
                     File overwriteFile = join(CWD, contents.fileLocation.get(i));
@@ -747,6 +759,9 @@ public class Repository {
                 subCurrentHash.substring(0, 6);
                 if (contents.currentHash.substring(0, 6).equals(id.substring(0, 6))) {
                     int size = contents.fileLocation.size();
+                    if (size == 1 && contents.fileLocation.get(0).equals("")) {
+                        size = 0;
+                    }
                     for (int i = 0; i < size; i++) {
                         if (contents.fileLocation.get(i).equals(name)) {
                             File overwriteFile = join(CWD, contents.fileLocation.get(i));
@@ -788,20 +803,15 @@ public class Repository {
                             readContentsAsString(join(BRANCHES, branchName))));
                     PseudoCommit headContents = readCommit(join(COMMITS,
                             readContentsAsString(HEAD)));
-                    List<String> blobFiles = plainFilenamesIn(BLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
-                    if (blobFiles == null && allFile != null) {
-                        System.out.println("There is an untracked file in the way; "
-                                + "delete it, or add and commit it first.");
-                        return;
-                    }
-                    if (blobFiles.isEmpty() && !allFile.isEmpty()) {
-                        System.out.println("There is an untracked file in the way; "
-                                + "delete it, or add and commit it first.");
-                        return;
-                    }
                     int branchSize = contents.fileLocation.size();
                     int headSize = headContents.fileLocation.size();
+                    if (branchSize == 1 && contents.fileLocation.get(0).equals("")) {
+                        branchSize = 0;
+                    }
+                    if (headSize == 1 && contents.fileLocation.get(0).equals("")) {
+                        headSize = 0;
+                    }
                     for (int j = 0; j < branchSize; j++) {
                         boolean checked = false;
                         for (int k = 0; k < headSize; k++) {
@@ -830,10 +840,13 @@ public class Repository {
                             restrictedDelete(join(CWD, contents.fileLocation.get(j)));
                         }
                     }
-                    writeContents(HEAD, contents.currentHash);
-                    writeContents(CURRENT, branchName);
-                    size = contents.refToBlobs.size();
-                    for (int j = 0; j < size; j++) {
+                    for (String deleteFileInCWD : allFile) {
+                        File fileToDelete = join(CWD, deleteFileInCWD);
+                        restrictedDelete(fileToDelete);
+                        System.out.println("Deleted " + fileToDelete);
+                    }
+                    for (int j = 0; j < branchSize; j++) {
+                        System.out.println(contents.refToBlobs.get(j));
                         File writeFile = join(CWD, contents.fileLocation.get(j));
                         if (!writeFile.exists()) {
                             writeFile.createNewFile();
@@ -841,6 +854,8 @@ public class Repository {
                         writeContents(writeFile, readContentsAsString(
                                 join(BLOBS, contents.refToBlobs.get(j))));
                     }
+                    writeContents(HEAD, contents.currentHash);
+                    writeContents(CURRENT, branchName);
                     return;
                 }
             }
@@ -896,6 +911,9 @@ public class Repository {
                         }
                     }
                     size = current.refToBlobs.size();
+                    if (size == 1 && current.refToBlobs.get(0).equals("")) {
+                        size = 0;
+                    }
                     for (int i = 0; i < size; ++i) {
                         File writeFile = join(CWD, current.fileLocation.get(i));
                         writeFile.createNewFile();
@@ -929,7 +947,7 @@ public class Repository {
             File commitFile = join(COMMITS, currentHash);
             commitFile.createNewFile();
 //        writeObject(commitFile, (Serializable) arg);
-            appendContents(commitFile, arg.getMessage(), "@", timestamp, "@@", currentHash, "@");
+            appendContents(commitFile, arg.getMessage(), "@", timestamp, "@@", currentHash, "@$!@");
             writeContents(HEAD, currentHash);
             writeContents(MASTER, currentHash);
             writeContents(CURRENT, "master");
@@ -938,6 +956,13 @@ public class Repository {
         }
 
 
+    }
+
+    public static void test() {
+        PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(join(BRANCHES, "other"))));
+        PseudoCommit headContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+        System.out.println(contents.refToBlobs.size());
+        System.out.println(contents.fileLocation.size());
     }
 
 

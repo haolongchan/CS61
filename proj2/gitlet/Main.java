@@ -140,6 +140,10 @@ public class Main {
                 Repository.reset(args[1]);
                 break;
 
+            case "test":
+                Repository.test();
+                break;
+
             default:
                 if (args.length != 0) {
                     System.out.println("No command with that name exists.");
