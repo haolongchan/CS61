@@ -843,10 +843,8 @@ public class Repository {
                     for (String deleteFileInCWD : allFile) {
                         File fileToDelete = join(CWD, deleteFileInCWD);
                         restrictedDelete(fileToDelete);
-                        System.out.println("Deleted " + fileToDelete);
                     }
                     for (int j = 0; j < branchSize; j++) {
-                        System.out.println(contents.refToBlobs.get(j));
                         File writeFile = join(CWD, contents.fileLocation.get(j));
                         if (!writeFile.exists()) {
                             writeFile.createNewFile();
@@ -959,8 +957,10 @@ public class Repository {
     }
 
     public static void test() {
-        PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(join(BRANCHES, "other"))));
-        PseudoCommit headContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+        PseudoCommit contents = readCommit(join(COMMITS,
+                readContentsAsString(join(BRANCHES, "other"))));
+        PseudoCommit headContents = readCommit(join(COMMITS,
+                readContentsAsString(HEAD)));
         System.out.println(contents.refToBlobs.size());
         System.out.println(contents.fileLocation.size());
     }
