@@ -811,7 +811,7 @@ public class Repository {
                     if (branchSize == 1 && contents.fileLocation.get(0).equals("")) {
                         branchSize = 0;
                     }
-                    if (headSize == 1 && contents.fileLocation.get(0).equals("")) {
+                    if (headSize == 1 && headContents.fileLocation.get(0).equals("")) {
                         headSize = 0;
                     }
                     for (int j = 0; j < branchSize; j++) {
