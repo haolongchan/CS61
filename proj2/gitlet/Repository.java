@@ -822,9 +822,13 @@ public class Repository {
                         }
                         if (!checked) {
                             if (join(CWD, contents.fileLocation.get(j)).exists()) {
-                                System.out.println("There is an untracked file in the way; "
-                                        + "delete it, or add and commit it first.");
-                                return;
+                                if (!contents.refToBlobs.get(j).equals(sha1(readContentsAsString(
+                                        join(CWD, contents.fileLocation.get(j))),
+                                                contents.fileLocation.get(j)))) {
+                                    System.out.println("There is an untracked file in the way; "
+                                            + "delete it, or add and commit it first.");
+                                    return;
+                                }
                             }
                         }
                     }
