@@ -970,7 +970,7 @@ public class Repository {
         PseudoCommit givenCommit = readCommit(join(COMMITS,
                 readContentsAsString(join(BRANCHES, givenBranch))));
         PseudoCommit currentCommit = readCommit(join(COMMITS,
-                readContentsAsString(join(CURRENT, currentBranch))));
+                readContentsAsString(join(BRANCHES, currentBranch))));
         List<String> givenParentBranch = new ArrayList<>();
         String parentHash = givenCommit.currentHash;
         List<String> currentParentBranch = new ArrayList<>();
@@ -993,18 +993,281 @@ public class Repository {
         return null;
     }
 
-    public static void merge(String branchName) {
-        String ancestorHash = lca(branchName, readContentsAsString(join(BRANCHES,
-                readContentsAsString(CURRENT))));
+    private static void checkForMerge(List<String> allBranchNames, String branchName,
+                                      String ancestorHash, int givenSize, int currentSize,
+                                      PseudoCommit givenCommit, PseudoCommit currentCommit) {
+        boolean checked = false;
+        if (readContentsAsString(ADDFILE).length() == 0 ||
+                readContentsAsString(REMOVEFILE).length() == 0) {
+            System.out.println("You have uncommitted changes.");
+            System.exit(0);
+        }
+        for (String branch : allBranchNames) {
+            if (branch.equals(branchName)) {
+                checked = true;
+                break;
+            }
+        }
+        if (!checked) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
+        if (readContentsAsString(CURRENT).equals(branchName)) {
+            System.out.println("Cannot merge a branch with itself.");
+            System.exit(0);
+        }
         if (branchName.equals(ancestorHash)) {
             System.out.println("Given branch is an ancestor of the current branch.");
-            return;
+            System.exit(0);
         }
         if (readContentsAsString(join(BRANCHES, readContentsAsString(CURRENT))).
                 equals(ancestorHash)) {
             System.out.println("Current branch fast-forwarded.");
         }
+        for (int i = 0; i < givenSize; i++) {
+            checked = false;
+            for (int j = 0; j < currentSize; ++j) {
+                if (givenCommit.refToBlobs.get(i).equals
+                        (currentCommit.refToBlobs.get(j))) {
+                    checked = true;
+                }
+            }
+            if (!checked) {
+                if (join(CWD, givenCommit.fileLocation.get(i)).exists()) {
+                    if (!givenCommit.refToBlobs.get(i).equals(sha1(readContentsAsString(
+                            join(CWD, givenCommit.fileLocation.get(i))
+                    ), givenCommit.fileLocation.get(i)))) {
+                        if (join(BLOBS, sha1(readContentsAsString(join(CWD,
+                                        givenCommit.fileLocation.get(i))),
+                                givenCommit.fileLocation.get(i))).exists()) {
+                            continue;
+                        }
+                        System.out.println("There is an untracked file in the way; "
+                                + "delete it, or add and commit it first.");
+                        System.exit(0);
+                    }
+                }
+            }
+        }
+    }
 
+    private static void threeFiles(String splitHash, String currentHash, String givenHash,
+                                   int givenSize, String fileName, PseudoCommit givenCommit) {
+        // case: 1, 2, 3
+        if (splitHash != givenHash && splitHash == currentHash) {
+            // case: 1
+            for (int i = 0; i < givenSize; i++) {
+                if (givenCommit.fileLocation.get(i).equals(fileName)) {
+                    writeContents(join(CWD, fileName), readContentsAsString
+                            (join(BLOBS, givenCommit.refToBlobs.get(i))));
+                    addFile(fileName);
+                    break;
+                }
+            }
+        }
+        if (splitHash == givenHash && splitHash != currentHash) {
+            // case: 2
+            addFile(fileName);
+        }
+        if (splitHash != givenHash && splitHash != currentHash) {
+            if (givenHash == currentHash) {
+                // case: 3.1
+                addFile(fileName);
+            } else {
+                // case: 3.2
+                String currentContent = readContentsAsString(join(CWD, fileName));
+                String givenContent = "";
+                for (int i = 0; i < givenSize; ++i) {
+                    if (givenCommit.fileLocation.get(i).equals(fileName)) {
+                        givenContent = readContentsAsString(join(BLOBS,
+                                givenCommit.refToBlobs.get(i)));
+                    }
+                }
+                writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
+                        currentContent, "=======\n", givenContent, ">>>>>>>");
+                System.out.println("Encountered a merge conflict.");
+                System.exit(0);
+            }
+        }
+    }
+
+    private static void lackGiven(String splitHash, String currentHash, String fileName, int
+            givenSize, PseudoCommit givenCommit, int currentSize, PseudoCommit currentCommit,
+                                  PseudoCommit splitCommit, int splitSize) {
+        if (splitHash != currentHash) {
+            // case: 3.2
+            String currentContent = readContentsAsString(join(CWD, fileName));
+            String givenContent = "";
+            for (int i = 0; i < givenSize; ++i) {
+                if (givenCommit.fileLocation.get(i).equals(fileName)) {
+                    givenContent = readContentsAsString(join(BLOBS,
+                            givenCommit.refToBlobs.get(i)));
+                }
+            }
+            writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
+                    currentContent, "=======\n", givenContent, ">>>>>>>");
+            System.out.println("Encountered a merge conflict.");
+            System.exit(0);
+        }
+        // case: 6
+        for (int i = 0; i < currentSize; ++i) {
+            if (currentCommit.fileLocation.get(i).equals(fileName)) {
+                for (int j = 0; j < splitSize; ++j) {
+                    if (splitCommit.fileLocation.get(j).equals(fileName)) {
+                        if (currentCommit.refToBlobs.get(i).equals
+                                (splitCommit.refToBlobs.get(j))) {
+                            removeFile(fileName);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static void lackCurrent(String splitHash, String givenHash, String fileName,
+                                    int givenSize, PseudoCommit givenCommit) {
+        if (splitHash != givenHash) {
+            // case: 3.2
+            String currentContent = readContentsAsString(join(CWD, fileName));
+            String givenContent = "";
+            for (int i = 0; i < givenSize; ++i) {
+                if (givenCommit.fileLocation.get(i).equals(fileName)) {
+                    givenContent = readContentsAsString(join(BLOBS,
+                            givenCommit.refToBlobs.get(i)));
+                }
+            }
+            writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
+                    currentContent, "=======\n", givenContent, ">>>>>>>");
+            System.out.println("Encountered a merge conflict.");
+            System.exit(0);
+        }
+        // case: 7
+
+    }
+
+    private static void lackSplit(PseudoCommit currentCommit, String fileName, int givenSize,
+                                  PseudoCommit givenCommit) {
+        try {
+            if (currentCommit.fileLocation.contains(fileName)) {
+                if (!givenCommit.fileLocation.contains(fileName)) {
+                    // case: 4
+                    addFile(fileName);
+                } else {
+                    // case: 3.2
+                    String currentContent = readContentsAsString(join(CWD, fileName));
+                    String givenContent = "";
+                    for (int i = 0; i < givenSize; ++i) {
+                        if (givenCommit.fileLocation.get(i).equals(fileName)) {
+                            givenContent = readContentsAsString(join(BLOBS,
+                                    givenCommit.refToBlobs.get(i)));
+                        }
+                    }
+                    writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
+                            currentContent, "=======\n", givenContent, ">>>>>>>");
+                    System.out.println("Encountered a merge conflict.");
+                    System.exit(0);
+                }
+            } else {
+                // case: 5
+                if (givenCommit.fileLocation.contains(fileName)) {
+                    File createFile = join(CWD, fileName);
+                    createFile.createNewFile();
+                    for (int i = 0; i < givenSize; ++i) {
+                        if (givenCommit.fileLocation.get(i).equals(fileName)) {
+                            writeContents(createFile, readContentsAsString(join(
+                                    BLOBS, givenCommit.refToBlobs.get(i))));
+                            break;
+                        }
+                    }
+
+                    addFile(fileName);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void merge(String branchName) {
+        String ancestorHash = lca(branchName, readContentsAsString(join(BRANCHES,
+                readContentsAsString(CURRENT))));
+        List<String> allBranchNames = plainFilenamesIn(BRANCHES);
+        boolean checked = false;
+        Set<String> allFileName = new HashSet<>();
+        PseudoCommit givenCommit = readCommit(join(COMMITS,
+                readContentsAsString(join(BRANCHES, branchName))));
+        PseudoCommit currentCommit = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+        PseudoCommit splitCommit = readCommit(join(COMMITS, ancestorHash));
+        for (String fileName : givenCommit.fileLocation) {
+            if (!fileName.equals("")) {
+                allFileName.add(fileName);
+            }
+        }
+        for (String fileName : currentCommit.fileLocation) {
+            if (!fileName.equals("")) {
+                allFileName.add(fileName);
+            }
+        }
+        for (String fileName : splitCommit.fileLocation) {
+            if (!fileName.equals("")) {
+                allFileName.add(fileName);
+            }
+        }
+        int givenSize = givenCommit.fileLocation.size();
+        int currentSize = currentCommit.fileLocation.size();
+        int splitSize = splitCommit.fileLocation.size();
+        if (givenSize == 1 && givenCommit.fileLocation.get(0).equals("")) {
+            givenSize = 0;
+        }
+        if (currentSize == 1 && currentCommit.fileLocation.get(0).equals("")) {
+            currentSize = 0;
+        }
+        if (splitSize == 1 && splitCommit.fileLocation.get(0).equals("")) {
+            splitSize = 0;
+        }
+        checkForMerge(allBranchNames, branchName, ancestorHash, givenSize, currentSize,
+                givenCommit, currentCommit);
+
+        for (String fileName : allFileName) {
+            String givenHash = "";
+            String currentHash = "";
+            String splitHash = "";
+            for (int i = 0; i < givenSize; i++) {
+                if (givenCommit.fileLocation.get(i).equals(fileName)) {
+                    givenHash = givenCommit.refToBlobs.get(i);
+                    break;
+                }
+            }
+            for (int i = 0; i < currentSize; i++) {
+                if (currentCommit.fileLocation.get(i).equals(fileName)) {
+                    currentHash = currentCommit.refToBlobs.get(i);
+                    break;
+                }
+            }
+            for (int i = 0; i < splitSize; i++) {
+                if (splitCommit.fileLocation.get(i).equals(fileName)) {
+                    splitHash = splitCommit.refToBlobs.get(i);
+                    break;
+                }
+            }
+            if (splitCommit.fileLocation.contains(fileName)) {
+                if (currentCommit.fileLocation.contains(fileName)) {
+                    if (givenCommit.fileLocation.contains(fileName)) {
+                        threeFiles(splitHash, currentHash, givenHash, givenSize, fileName,
+                                givenCommit);
+                    } else {
+                        lackGiven(splitHash, currentHash, fileName, givenSize, givenCommit,
+                                currentSize, currentCommit, splitCommit, splitSize);
+                    }
+                } else {
+                    lackCurrent(splitHash, givenHash, fileName, givenSize, givenCommit);
+                }
+            } else {
+                lackSplit(currentCommit, splitHash, givenSize, givenCommit);
+            }
+        }
+        String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT);
+        prepareForCommit(message);
     }
 
 
