@@ -966,7 +966,7 @@ public class Repository {
 
     }
 
-    private static String Lca(String givenBranch, String currentBranch) {
+    private static String lca(String givenBranch, String currentBranch) {
         PseudoCommit givenCommit = readCommit(join(COMMITS,
                 readContentsAsString(join(BRANCHES, givenBranch))));
         PseudoCommit currentCommit = readCommit(join(COMMITS,
@@ -994,7 +994,7 @@ public class Repository {
     }
 
     public static void merge(String branchName) {
-        String ancestorHash = Lca(branchName, readContentsAsString(join(BRANCHES,
+        String ancestorHash = lca(branchName, readContentsAsString(join(BRANCHES,
                 readContentsAsString(CURRENT))));
         if (branchName.equals(ancestorHash)) {
             System.out.println("Given branch is an ancestor of the current branch.");
