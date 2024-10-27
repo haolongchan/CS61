@@ -156,7 +156,7 @@ public class Repository {
             if (size == 1 && commitContents.fileLocation.get(0).equals("")) {
                 size = 0;
             }
-            while(!commitContents.parentHash.isEmpty()) {
+            while (!commitContents.parentHash.isEmpty()) {
                 for (int i = 0; i < size; i++) {
                     if (commitContents.fileLocation.get(i).equals(fileName)) {
                         restrictedDelete(toremove);
@@ -545,13 +545,11 @@ public class Repository {
             psize = 0;
         }
         for (int i = 0; i < size; i++) {
-            boolean exist = false;
             for (int j = 0; j < psize; j++) {
                 if (arg.getRmHash().get(i).length() == 0) {
                     continue;
                 }
                 if (parentContents.refToBlobs.get(j).equals(arg.getRmHash().get(i))) {
-                    exist = true;
                     parentContents.refToBlobs.remove(j);
                     parentContents.fileLocation.remove(j);
                     psize--;
@@ -560,11 +558,6 @@ public class Repository {
                         writeContents(join(BLOBS, arg.getRmHash().get(i)), "");
                     }
                 }
-            }
-            if (!exist) {
-                writeContents(REMOVEFILE, "");
-                System.out.println("No changes added to the commit.");
-                return;
             }
         }
         writeContents(REMOVEFILE, "");
@@ -596,13 +589,11 @@ public class Repository {
             psize = 0;
         }
         for (int i = 0; i < size; i++) {
-            boolean exist = false;
             for (int j = 0; j < psize; j++) {
                 if (parentContents.refToBlobs.get(j).length() == 0) {
                     continue;
                 }
                 if (parentContents.fileLocation.get(j).equals(removed.get(i))) {
-                    exist = true;
                     String deleteHash = parentContents.refToBlobs.get(j);
                     parentContents.refToBlobs.remove(j);
                     parentContents.fileLocation.remove(j);
@@ -612,12 +603,6 @@ public class Repository {
                         writeContents(join(BLOBS, deleteHash), "");
                     }
                 }
-            }
-            if (!exist) {
-                writeContents(REMOVEFILE, "");
-                writeContents(ADDFILE, "");
-                System.out.println("No changes added to the commit.");
-                return;
             }
         }
         writeContents(REMOVEFILE, "");
