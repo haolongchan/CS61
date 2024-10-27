@@ -1009,8 +1009,8 @@ public class Repository {
                                       String ancestorHash, int givenSize, int currentSize,
                                       PseudoCommit givenCommit, PseudoCommit currentCommit) {
         boolean checked = false;
-        if (readContentsAsString(ADDFILE).length() == 0
-                || readContentsAsString(REMOVEFILE).length() == 0) {
+        if (readContentsAsString(ADDFILE).length() != 0
+                || readContentsAsString(REMOVEFILE).length() != 0) {
             System.out.println("You have uncommitted changes.");
             System.exit(0);
         }
