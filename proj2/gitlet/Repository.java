@@ -870,16 +870,20 @@ public class Repository {
         return readCommit(join(OLDCOMMITS, readContentsAsString(join(BRANCHES, branchName))));
     }
 
+    private static void helpForCheckout(String branchName) {
+        if (readContentsAsString(CURRENT).equals(branchName)) {
+            System.out.println("No need to checkout the current branch.");
+            System.exit(0);
+        }
+    }
+
     public static void checkoutBranch(String branchName) {
         try {
             checkGitlet();
             List<String> branch = plainFilenamesIn(BRANCHES);
             for (int i = 0; i < branch.size(); i++) {
                 if (branch.get(i).equals(branchName)) {
-                    if (readContentsAsString(CURRENT).equals(branchName)) {
-                        System.out.println("No need to checkout the current branch.");
-                        return;
-                    }
+                    helpForCheckout(branchName);
                     PseudoCommit contents = getNewCommit(branchName);
                     PseudoCommit headContents = getHeadCommit();
                     List<String> allFile = plainFilenamesIn(CWD);
