@@ -229,8 +229,6 @@ public class Repository {
         LinkedList<String> refToBlob = new LinkedList<>();
         LinkedList<String> fileLoc = new LinkedList<>();
         int index = -1;
-
-        /* read message */
         for (int i = 0; i < size; i++) {
             if (contents.charAt(i) == '@') {
                 index = i + 1;
@@ -238,8 +236,6 @@ public class Repository {
             }
             message += contents.charAt(i);
         }
-
-        /* read timestamp */
         for (int i = index; i < size; i++) {
             if (contents.charAt(i) == '@') {
                 index = i + 1;
@@ -247,8 +243,6 @@ public class Repository {
             }
             timestamp += contents.charAt(i);
         }
-
-        /* read parent hash */
         for (int i = index; i < size; i++) {
             if (contents.charAt(i) == '@') {
                 index = i + 1;
@@ -256,8 +250,6 @@ public class Repository {
             }
             parentHash += contents.charAt(i);
         }
-
-        /* read current Hash */
         for (int i = index; i < size; i++) {
             if (contents.charAt(i) == '@') {
                 index = i + 1;
@@ -266,8 +258,6 @@ public class Repository {
             currentHash += contents.charAt(i);
         }
         String tmp = "";
-
-        /* read reference to blob */
         for (int i = index; i < size; i++) {
             if (contents.charAt(i) == '!') {
                 index = i + 1;
@@ -281,8 +271,6 @@ public class Repository {
                 tmp += contents.charAt(i);
             }
         }
-
-        /* read file name */
         for (int i = index; i < size; i++) {
             if (contents.charAt(i) == '#') {
                 index = i + 1;
@@ -329,7 +317,7 @@ public class Repository {
         System.out.println("Date: " + currentContents.timestamp);
         System.out.println(currentContents.message);
         System.out.println("");
-        if (!currentContents.firstParentHash.isEmpty()) {
+        if (currentContents.firstParentHash.isEmpty()) {
             return;
         }
         while (currentContents.parentHash.length() != 0) {
@@ -340,7 +328,7 @@ public class Repository {
             System.out.println("Date: " + currentContents.timestamp);
             System.out.println(currentContents.message);
             System.out.println("");
-            if (!currentContents.firstParentHash.isEmpty()) {
+            if (currentContents.firstParentHash.isEmpty()) {
                 return;
             }
         }
@@ -1337,10 +1325,10 @@ public class Repository {
                 lackSplit(currentCommit, fileName, givenSize, givenCommit);
             }
         }
-        endOfMerge(branchName);
+        endOfMerge(branchName, givenCommit.currentHash);
     }
 
-    private static void endOfMerge(String branchName) {
+    private static void endOfMerge(String branchName, String givenHash) {
         try {
             String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT);
             deleteBranch(join(BRANCHES, branchName));
@@ -1349,7 +1337,8 @@ public class Repository {
             File commitFile = join(COMMITS, commitHash);
             commitFile.createNewFile();
             writeContents(commitFile, message, "@", timestamp, "@", readContentsAsString(join(
-                    BRANCHES, readContentsAsString(CURRENT))), "@", commitHash, "@$!@");
+                    BRANCHES, readContentsAsString(CURRENT))), "@", commitHash, "@$!@#",
+                    readContentsAsString(join(BRANCHES, readContentsAsString(CURRENT))), "@", givenHash);
             writeContents(join(BRANCHES, readContentsAsString(CURRENT)), commitHash);
             writeContents(HEAD, commitHash);
             writeContents(ADDFILE, "");
