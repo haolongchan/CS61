@@ -1118,7 +1118,7 @@ public class Repository {
     private static void checkForMerge(String branchName,
                                       String ancestorHash, int givenSize, int currentSize,
                                       PseudoCommit givenCommit, PseudoCommit currentCommit) {
-
+        boolean checked = true;
         if (readContentsAsString(CURRENT).equals(branchName)) {
             System.out.println("Cannot merge a branch with itself.");
             System.exit(0);
