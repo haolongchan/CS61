@@ -12,7 +12,7 @@ public class Main {
     public static void main(String[] args) {
 
         // test
-        Repository.merge("other");
+//        Repository.merge("other");
 
         if (args.length == 0) {
             System.out.println("Please enter a command.");
