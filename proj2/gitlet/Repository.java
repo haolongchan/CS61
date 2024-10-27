@@ -323,8 +323,8 @@ public class Repository {
         System.out.println("===");
         System.out.println("commit " + currentContents.currentHash);
         if (!currentContents.firstParentHash.isEmpty()) {
-            System.out.println("Merge: " + currentContents.firstParentHash + " " +
-                    currentContents.secondParentHash);
+            System.out.println("Merge: " + currentContents.firstParentHash.substring(0, 7)
+                    + " " + currentContents.secondParentHash.substring(0, 7));
         }
         System.out.println("Date: " + currentContents.timestamp);
         System.out.println(currentContents.message);
@@ -338,8 +338,8 @@ public class Repository {
             System.out.println("===");
             System.out.println("commit " + currentContents.currentHash);
             if (!currentContents.firstParentHash.isEmpty()) {
-                System.out.println("Merge: " + currentContents.firstParentHash + " " +
-                        currentContents.secondParentHash);
+                System.out.println("Merge: " + currentContents.firstParentHash.substring(0, 7)
+                        + " " + currentContents.secondParentHash.substring(0, 7));
             }
             System.out.println("Date: " + currentContents.timestamp);
             System.out.println(currentContents.message);
