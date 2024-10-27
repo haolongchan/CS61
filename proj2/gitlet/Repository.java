@@ -614,6 +614,18 @@ public class Repository {
         }
     }
 
+    private static void restoreForCheckout() {
+        File oldCommit = join(OLDCOMMITS, readContentsAsString(HEAD));
+        File newCommit = join(COMMITS, readContentsAsString(HEAD));
+        writeContents(newCommit, readContentsAsString(oldCommit));
+        PseudoCommit contents = readCommit(oldCommit);
+        if (!contents.refToBlobs.isEmpty()) {
+            for (String s : contents.refToBlobs) {
+                writeContents(join(COMMITS, s), readContentsAsString(join(OLDCOMMITS, s)));
+            }
+        }
+    }
+
     /*
     * create a commit
     * 1. Linked to parent
@@ -781,6 +793,7 @@ public class Repository {
                     writeContents(overwriteFile, content);
                     writeContents(HEAD, contents.currentHash);
                     writeContents(OLDHEAD, contents.currentHash);
+                    restoreForCheckout();
                     return true;
                 }
             }
@@ -815,6 +828,7 @@ public class Repository {
                             String content = readContentsAsString(join(OLDBLOBS,
                                     contents.refToBlobs.get(i)));
                             writeContents(overwriteFile, content);
+                            restoreForCheckout();
                             return true;
                         }
                     }
@@ -922,6 +936,7 @@ public class Repository {
                     writeContents(HEAD, contents.currentHash);
                     writeContents(OLDHEAD, contents.currentHash);
                     writeContents(CURRENT, branchName);
+                    restoreForCheckout();
                     return;
                 }
             }
@@ -991,6 +1006,7 @@ public class Repository {
                             current.currentHash);
                     writeContents(ADDFILE, "");
                     writeContents(REMOVEFILE, "");
+                    restoreForCheckout();
                     return;
                 }
             }
