@@ -156,13 +156,16 @@ public class Repository {
             if (size == 1 && commitContents.fileLocation.get(0).equals("")) {
                 size = 0;
             }
-            for (int i = 0; i < size; i++) {
-                if (commitContents.fileLocation.get(i).equals(fileName)) {
-                    restrictedDelete(toremove);
-                    appendContents(REMOVEFILE, "^@", fileName, "@");
-                    writeContents(join(BLOBS, commitContents.refToBlobs.get(i)), "");
-                    return true;
+            while(!commitContents.parentHash.isEmpty()) {
+                for (int i = 0; i < size; i++) {
+                    if (commitContents.fileLocation.get(i).equals(fileName)) {
+                        restrictedDelete(toremove);
+                        appendContents(REMOVEFILE, "^@", fileName, "@");
+                        writeContents(join(BLOBS, commitContents.refToBlobs.get(i)), "");
+                        return true;
+                    }
                 }
+                commitContents = readCommit(join(COMMITS, commitContents.parentHash));
             }
             System.out.println("No reason to remove the file.");
             return false;
@@ -1093,9 +1096,7 @@ public class Repository {
         return null;
     }
 
-    private static void checkForMerge(List<String> allBranchNames, String branchName,
-                                      String ancestorHash, int givenSize, int currentSize,
-                                      PseudoCommit givenCommit, PseudoCommit currentCommit) {
+    private static void checkBranchName(List<String> allBranchNames, String branchName) {
         boolean checked = false;
         if (readContentsAsString(ADDFILE).length() != 0
                 || readContentsAsString(REMOVEFILE).length() != 0) {
@@ -1112,6 +1113,12 @@ public class Repository {
             System.out.println("A branch with that name does not exist.");
             System.exit(0);
         }
+    }
+
+    private static void checkForMerge(String branchName,
+                                      String ancestorHash, int givenSize, int currentSize,
+                                      PseudoCommit givenCommit, PseudoCommit currentCommit) {
+
         if (readContentsAsString(CURRENT).equals(branchName)) {
             System.out.println("Cannot merge a branch with itself.");
             System.exit(0);
@@ -1307,8 +1314,9 @@ public class Repository {
     }
 
     public static void merge(String branchName) {
-        String ancestorHash = lca(branchName, readContentsAsString(CURRENT));
         List<String> allBranchNames = plainFilenamesIn(BRANCHES);
+        checkBranchName(allBranchNames, branchName);
+        String ancestorHash = lca(branchName, readContentsAsString(CURRENT));
         Set<String> allFileName = new HashSet<>();
         PseudoCommit givenCommit = readCommit(join(COMMITS,
                 readContentsAsString(join(BRANCHES, branchName))));
@@ -1342,7 +1350,7 @@ public class Repository {
         if (splitSize == 1 && splitCommit.fileLocation.get(0).equals("")) {
             splitSize = 0;
         }
-        checkForMerge(allBranchNames, branchName, ancestorHash, givenSize, currentSize,
+        checkForMerge(branchName, ancestorHash, givenSize, currentSize,
                 givenCommit, currentCommit);
         String givenHash = "";
         String currentHash = "";
