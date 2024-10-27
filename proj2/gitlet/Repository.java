@@ -1187,6 +1187,9 @@ public class Repository {
             splitSize = 0;
         }
         if (splitHash != currentHash) {
+            if (currentHash.isEmpty() || currentHash.equals("")) {
+                return true;
+            }
             // case: 3.2
             String currentContent = readContentsAsString(join(CWD, fileName));
             String splitContent = "";
@@ -1222,6 +1225,9 @@ public class Repository {
                                        int givenSize, int splitSize, PseudoCommit givenCommit,
                                        PseudoCommit splitCommit) {
         if (splitHash != givenHash) {
+            if (givenHash.isEmpty() || givenHash.equals("")) {
+                return true;
+            }
             // case: 3.2
             String splitContent = "";
             String givenContent = "";
@@ -1246,13 +1252,17 @@ public class Repository {
     }
 
     private static boolean lackSplit(PseudoCommit currentCommit, String fileName, int givenSize,
-                                     PseudoCommit givenCommit) {
+                                     PseudoCommit givenCommit, String currentHash,
+                                     String givenHash) {
         try {
             if (currentCommit.fileLocation.contains(fileName)) {
                 if (!givenCommit.fileLocation.contains(fileName)) {
                     // case: 4
                     return true;
                 } else {
+                    if (currentHash.equals(givenHash)) {
+                        return true;
+                    }
                     // case: 3.2
                     String currentContent = readContentsAsString(join(CWD, fileName));
                     String givenContent = "";
@@ -1361,7 +1371,8 @@ public class Repository {
                             givenCommit, splitCommit) && flag;
                 }
             } else {
-                flag = lackSplit(currentCommit, fileName, givenSize, givenCommit) && flag;
+                flag = lackSplit(currentCommit, fileName, givenSize, givenCommit,
+                        currentHash, givenHash) && flag;
             }
         }
         endOfMerge(branchName, givenHash, flag);
