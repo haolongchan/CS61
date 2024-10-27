@@ -1348,7 +1348,6 @@ public class Repository {
         try {
             String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT)
                     + ".";
-            deleteBranch(join(BRANCHES, branchName));
             String timestamp = Commit.formatDate(new Date());
             String commitHash = sha1(message, timestamp);
             File commitFile = join(COMMITS, commitHash);
