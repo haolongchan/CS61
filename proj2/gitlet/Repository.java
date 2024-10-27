@@ -123,11 +123,6 @@ public class Repository {
             File blob = join(BLOBS, fileHash);
             blob.createNewFile();
             writeContents(blob, readContentsAsString(selected));
-//            for (String s : removeContents) {
-//                if (s.equals(fileHash)) {
-//                    return true;
-//                }
-//            }
             appendContents(ADDFILE, fileHash, ":", fileName, "@");
             return true;
         } catch (IOException e) {
@@ -1203,8 +1198,6 @@ public class Repository {
                             break;
                         }
                     }
-
-                    addFile(fileName);
                 }
             }
         } catch (IOException e) {
@@ -1284,10 +1277,27 @@ public class Repository {
                     lackCurrent(splitHash, givenHash, fileName, givenSize, givenCommit);
                 }
             } else {
-                lackSplit(currentCommit, splitHash, givenSize, givenCommit);
+                lackSplit(currentCommit, fileName, givenSize, givenCommit);
             }
         }
-        String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT);
-        prepareForCommit(message);
+        endOfMerge(branchName);
+
     }
+
+    private static void endOfMerge(String branchName) {
+        try {
+            String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT);
+            deleteBranch(join(BRANCHES, branchName));
+            String timestamp = Commit.formatDate(new Date());
+            String commitHash = sha1(message, timestamp);
+            File commitFile = join(COMMITS, commitHash);
+            commitFile.createNewFile();
+            writeContents(commitFile, message, "@", timestamp, "@", readContentsAsString(join(
+                    BRANCHES, readContentsAsString(CURRENT))), "@", commitHash, "@$!@");
+            writeContents(CURRENT, branchName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
