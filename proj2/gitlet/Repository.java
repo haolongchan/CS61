@@ -1108,7 +1108,8 @@ public class Repository {
             System.out.println("Cannot merge a branch with itself.");
             System.exit(0);
         }
-        if (branchName.equals(ancestorHash)) {
+        String branchHash = readContentsAsString(join(BRANCHES, branchName));
+        if (branchHash.equals(ancestorHash)) {
             System.out.println("Given branch is an ancestor of the current branch.");
             System.exit(0);
         }
