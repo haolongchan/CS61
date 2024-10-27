@@ -329,9 +329,6 @@ public class Repository {
         System.out.println("Date: " + currentContents.timestamp);
         System.out.println(currentContents.message);
         System.out.println("");
-        if (!currentContents.firstParentHash.isEmpty()) {
-            return;
-        }
         while (currentContents.parentHash.length() != 0) {
             currentCommit = join(COMMITS, currentContents.parentHash);
             currentContents = readCommit(currentCommit);
@@ -344,9 +341,6 @@ public class Repository {
             System.out.println("Date: " + currentContents.timestamp);
             System.out.println(currentContents.message);
             System.out.println("");
-            if (!currentContents.firstParentHash.isEmpty()) {
-                return;
-            }
         }
     }
 
@@ -366,6 +360,10 @@ public class Repository {
             PseudoCommit currentContents = readCommit(currentCommit);
             System.out.println("===");
             System.out.println("commit " + currentContents.currentHash);
+            if (!currentContents.firstParentHash.isEmpty()) {
+                System.out.println("Merge: " + currentContents.firstParentHash.substring(0, 7)
+                        + " " + currentContents.secondParentHash.substring(0, 7));
+            }
             System.out.println("Date: " + currentContents.timestamp);
             System.out.println(currentContents.message);
             System.out.println("");
@@ -1341,14 +1339,14 @@ public class Repository {
                 flag = lackSplit(currentCommit, fileName, givenSize, givenCommit) && flag;
             }
         }
-        if (!flag) {
-            System.out.println("Encountered a merge conflict.");
-        }
-        endOfMerge(branchName, givenCommit.currentHash);
+        endOfMerge(branchName, givenCommit.currentHash, flag);
     }
 
-    private static void endOfMerge(String branchName, String givenHash) {
+    private static void endOfMerge(String branchName, String givenHash, boolean flag) {
         try {
+            if (!flag) {
+                System.out.println("Encountered a merge conflict.");
+            }
             String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT)
                     + ".";
             String timestamp = Commit.formatDate(new Date());
