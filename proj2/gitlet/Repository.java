@@ -322,6 +322,10 @@ public class Repository {
         PseudoCommit currentContents = readCommit(currentCommit);
         System.out.println("===");
         System.out.println("commit " + currentContents.currentHash);
+        if (!currentContents.firstParentHash.isEmpty()) {
+            System.out.println("Merge: " + currentContents.firstParentHash + " " +
+                    currentContents.secondParentHash);
+        }
         System.out.println("Date: " + currentContents.timestamp);
         System.out.println(currentContents.message);
         System.out.println("");
@@ -333,6 +337,10 @@ public class Repository {
             currentContents = readCommit(currentCommit);
             System.out.println("===");
             System.out.println("commit " + currentContents.currentHash);
+            if (!currentContents.firstParentHash.isEmpty()) {
+                System.out.println("Merge: " + currentContents.firstParentHash + " " +
+                        currentContents.secondParentHash);
+            }
             System.out.println("Date: " + currentContents.timestamp);
             System.out.println(currentContents.message);
             System.out.println("");
