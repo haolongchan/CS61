@@ -33,7 +33,6 @@ public class Repository {
     public static final File STAGES = join(GITLET_DIR, "stages");
     public static final File ADDFILE = join(STAGES, "addfile");
     public static final File REMOVEFILE = join(STAGES, "removefile");
-    public static final File CHECKOUT = join(STAGES, "checkout");
 
     /* recording secure hash */
     public static final File HEAD = join(GITLET_DIR, "head");
@@ -81,7 +80,6 @@ public class Repository {
             REMOVEFILE.createNewFile();
             OLDCOMMITS.mkdir();
             OLDBLOBS.mkdir();
-            CHECKOUT.mkdir();
 //        INDEXFILE.createNewFile();
 //        BLOBINDEX.createNewFile();
             HEAD.createNewFile();
@@ -100,9 +98,9 @@ public class Repository {
 
 
     /*
-    * add the file to blog directory
-    * add the secure hash1 of the file to addfile of stage
-    * */
+     * add the file to blog directory
+     * add the secure hash1 of the file to addfile of stage
+     * */
     public static boolean addFile(String fileName) {
         try {
             File selected = join(CWD, fileName);
@@ -216,8 +214,8 @@ public class Repository {
 
 
     /*
-    * get the newest commit and return
-    * */
+     * get the newest commit and return
+     * */
     public static PseudoCommit readCommit(File commit) {
         String contents = readContentsAsString(commit);
         int size = contents.length();
@@ -616,62 +614,13 @@ public class Repository {
         }
     }
 
-    private static void restoreForCheckout() {
-        try {
-            File oldCommit = join(OLDCOMMITS, readContentsAsString(HEAD));
-            File newCommit = join(COMMITS, readContentsAsString(HEAD));
-            writeContents(newCommit, readContentsAsString(oldCommit));
-            PseudoCommit contents = readCommit(oldCommit);
-            if (contents.refToBlobs.size() > 1) {
-                for (String s : contents.refToBlobs) {
-                    writeContents(join(BLOBS, s), readContentsAsString(join(OLDBLOBS, s)));
-                }
-            }
-            File rd = join(CHECKOUT, readContentsAsString(HEAD));
-            if (rd.exists()) {
-                String content = readContentsAsString(rd);
-                int size = content.length();
-                boolean checkName = false;
-                boolean operate = false;
-                String fileName = "";
-                String fileHash = "";
-                for (int i = 0; i < size; i++) {
-                    if (!checkName) {
-                        if (content.charAt(i) == ':') {
-                            checkName = true;
-                        } else {
-                            fileHash += content.charAt(i);
-                        }
-                    } else {
-                        if (content.charAt(i) == '@') {
-                            checkName = false;
-                            operate = true;
-                        } else {
-                            fileName += content.charAt(i);
-                        }
-                    }
-                    if (operate) {
-                        String fileContent = readContentsAsString(join(OLDBLOBS, fileHash));
-                        File writeFile = join(CWD, fileName);
-                        if (!writeFile.exists()) {
-                            writeFile.createNewFile();
-                        }
-                        writeContents(writeFile, fileContent);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     /*
-    * create a commit
-    * 1. Linked to parent
-    * 2. save commit to file
-    * 3. update head and current branch
-    * 4. clear stage files
-    * */
+     * create a commit
+     * 1. Linked to parent
+     * 2. save commit to file
+     * 3. update head and current branch
+     * 4. clear stage files
+     * */
     public static void createcommits(Commit arg) {
         try {
             checkGitlet();
@@ -741,7 +690,7 @@ public class Repository {
     }
 
     private static void helpForCommits(Commit arg, String timestamp, String parentHash,
-                                         List<String> removed, List<String> staged) {
+                                       List<String> removed, List<String> staged) {
         try {
             String currentHash = sha1(arg.getMessage(), timestamp, staged.toString(),
                     parentHash, removed.toString());
@@ -832,7 +781,6 @@ public class Repository {
                     writeContents(overwriteFile, content);
                     writeContents(HEAD, contents.currentHash);
                     writeContents(OLDHEAD, contents.currentHash);
-                    restoreForCheckout();
                     return true;
                 }
             }
@@ -867,7 +815,6 @@ public class Repository {
                             String content = readContentsAsString(join(OLDBLOBS,
                                     contents.refToBlobs.get(i)));
                             writeContents(overwriteFile, content);
-                            restoreForCheckout();
                             return true;
                         }
                     }
@@ -908,7 +855,6 @@ public class Repository {
     public static void checkoutBranch(String branchName) {
         try {
             checkGitlet();
-            saveCurrentBranch();
             List<String> branch = plainFilenamesIn(BRANCHES);
             for (int i = 0; i < branch.size(); i++) {
                 if (branch.get(i).equals(branchName)) {
@@ -935,10 +881,10 @@ public class Repository {
                         if (!checked) {
                             if (join(CWD, contents.fileLocation.get(j)).exists()) {
                                 if (!contents.refToBlobs.get(j).equals(sha1(readContentsAsString(
-                                        join(CWD, contents.fileLocation.get(j))),
-                                                contents.fileLocation.get(j)))) {
+                                                join(CWD, contents.fileLocation.get(j))),
+                                        contents.fileLocation.get(j)))) {
                                     if (join(OLDBLOBS, sha1(readContentsAsString(join(CWD,
-                                            contents.fileLocation.get(j))),
+                                                    contents.fileLocation.get(j))),
                                             contents.fileLocation.get(j))).exists()) {
                                         continue;
                                     }
@@ -976,7 +922,6 @@ public class Repository {
                     writeContents(HEAD, contents.currentHash);
                     writeContents(OLDHEAD, contents.currentHash);
                     writeContents(CURRENT, branchName);
-                    restoreForCheckout();
                     return;
                 }
             }
@@ -984,26 +929,6 @@ public class Repository {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static void saveCurrentBranch() {
-        try {
-            List<String> allFile = plainFilenamesIn(CWD);
-            File saveBranch = join(CHECKOUT, readContentsAsString(CURRENT));
-            if (!saveBranch.exists()) {
-                saveBranch.createNewFile();
-            } else {
-                writeContents(saveBranch, "");
-            }
-            for (String fileName : allFile) {
-                String fileHash = sha1(readContentsAsString(join(CWD, fileName)), fileName);
-                appendContents(join(CHECKOUT, readContentsAsString(CURRENT)), fileHash, ":",
-                        fileName, "@");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
     public static void reset(String id) {
@@ -1066,7 +991,6 @@ public class Repository {
                             current.currentHash);
                     writeContents(ADDFILE, "");
                     writeContents(REMOVEFILE, "");
-                    restoreForCheckout();
                     return;
                 }
             }
@@ -1208,7 +1132,7 @@ public class Repository {
     }
 
     private static boolean threeFiles(String splitHash, String currentHash, String givenHash,
-                                   int givenSize, String fileName, PseudoCommit givenCommit) {
+                                      int givenSize, String fileName, PseudoCommit givenCommit) {
         // case: 1, 2, 3
         if (splitHash != givenHash && splitHash == currentHash) {
             // case: 1
@@ -1248,8 +1172,8 @@ public class Repository {
     }
 
     private static boolean lackGiven(String splitHash, String currentHash, String fileName,
-                                  PseudoCommit givenCommit, PseudoCommit currentCommit,
-                                  PseudoCommit splitCommit) {
+                                     PseudoCommit givenCommit, PseudoCommit currentCommit,
+                                     PseudoCommit splitCommit) {
         int givenSize = givenCommit.fileLocation.size();
         int currentSize = currentCommit.fileLocation.size();
         int splitSize = splitCommit.fileLocation.size();
@@ -1295,8 +1219,8 @@ public class Repository {
     }
 
     private static boolean lackCurrent(String splitHash, String givenHash, String fileName,
-                                    int givenSize, int splitSize, PseudoCommit givenCommit,
-                                    PseudoCommit splitCommit) {
+                                       int givenSize, int splitSize, PseudoCommit givenCommit,
+                                       PseudoCommit splitCommit) {
         if (splitHash != givenHash) {
             // case: 3.2
             String splitContent = "";
@@ -1322,7 +1246,7 @@ public class Repository {
     }
 
     private static boolean lackSplit(PseudoCommit currentCommit, String fileName, int givenSize,
-                                  PseudoCommit givenCommit) {
+                                     PseudoCommit givenCommit) {
         try {
             if (currentCommit.fileLocation.contains(fileName)) {
                 if (!givenCommit.fileLocation.contains(fileName)) {
@@ -1457,7 +1381,7 @@ public class Repository {
             oldCommit.createNewFile();
             commitFile.createNewFile();
             writeContents(commitFile, message, "@", timestamp, "@", readContentsAsString(join(
-                    BRANCHES, readContentsAsString(CURRENT))), "@", commitHash, "@$!@#",
+                            BRANCHES, readContentsAsString(CURRENT))), "@", commitHash, "@$!@#",
                     readContentsAsString(join(BRANCHES, readContentsAsString(CURRENT))),
                     "@", givenHash);
             writeContents(oldCommit, message, "@", timestamp, "@", readContentsAsString(join(
