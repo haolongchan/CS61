@@ -283,6 +283,14 @@ public class Repository {
                 tmp += contents.charAt(i);
             }
         }
+        String[] ret = helpForReadCommit(contents, index, size);
+        String firstParentHash = ret[0];
+        String secondParentHash = ret[1];
+        return new PseudoCommit(message, timestamp, parentHash,
+                currentHash, refToBlob, fileLoc, firstParentHash, secondParentHash);
+    }
+
+    private static String[] helpForReadCommit(String contents, int index, int size) {
         String firstParentHash = "";
         String secondParentHash = "";
         if (index < size) {
@@ -300,8 +308,7 @@ public class Repository {
                 secondParentHash += contents.charAt(i);
             }
         }
-        return new PseudoCommit(message, timestamp, parentHash,
-                currentHash, refToBlob, fileLoc, firstParentHash, secondParentHash);
+        return new String[]{firstParentHash, secondParentHash};
     }
 
     public static void log() {
@@ -317,7 +324,7 @@ public class Repository {
         System.out.println("Date: " + currentContents.timestamp);
         System.out.println(currentContents.message);
         System.out.println("");
-        if (currentContents.firstParentHash.isEmpty()) {
+        if (!currentContents.firstParentHash.isEmpty()) {
             return;
         }
         while (currentContents.parentHash.length() != 0) {
@@ -328,7 +335,7 @@ public class Repository {
             System.out.println("Date: " + currentContents.timestamp);
             System.out.println(currentContents.message);
             System.out.println("");
-            if (currentContents.firstParentHash.isEmpty()) {
+            if (!currentContents.firstParentHash.isEmpty()) {
                 return;
             }
         }
@@ -1338,7 +1345,8 @@ public class Repository {
             commitFile.createNewFile();
             writeContents(commitFile, message, "@", timestamp, "@", readContentsAsString(join(
                     BRANCHES, readContentsAsString(CURRENT))), "@", commitHash, "@$!@#",
-                    readContentsAsString(join(BRANCHES, readContentsAsString(CURRENT))), "@", givenHash);
+                    readContentsAsString(join(BRANCHES, readContentsAsString(CURRENT))),
+                    "@", givenHash);
             writeContents(join(BRANCHES, readContentsAsString(CURRENT)), commitHash);
             writeContents(HEAD, commitHash);
             writeContents(ADDFILE, "");
