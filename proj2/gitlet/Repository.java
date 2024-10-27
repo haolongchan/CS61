@@ -538,15 +538,13 @@ public class Repository {
     private static void partOfCommits(Commit arg) {
         int size = arg.getRmHash().size();
         PseudoCommit parentContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-        String currentHash = sha1(arg.getMessage(), arg.getTimestamp().toString(),
-                arg.getRmHash().toString(), arg.getRmFile().toString());
         int psize = parentContents.refToBlobs.size();
         if (psize == 1 && parentContents.refToBlobs.get(0).equals("")) {
             psize = 0;
         }
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < psize; j++) {
-                if (arg.getRmHash().get(i).length() == 0) {
+                if (arg.getRmHash().get(i).isEmpty()) {
                     continue;
                 }
                 if (parentContents.refToBlobs.get(j).equals(arg.getRmHash().get(i))) {
@@ -564,19 +562,14 @@ public class Repository {
         writeContents(join(COMMITS, readContentsAsString(HEAD)), parentContents.message,
                 "@", parentContents.timestamp, "@", parentContents.parentHash, "@",
                 parentContents.currentHash, "@");
-        writeContents(join(OLDCOMMITS, readContentsAsString(HEAD)), parentContents.message,
-                "@", parentContents.timestamp, "@", parentContents.parentHash, "@",
-                parentContents.currentHash, "@");
-        if (parentContents.refToBlobs.size() > 0) {
+        if (!parentContents.refToBlobs.isEmpty()) {
             for (String s : parentContents.refToBlobs) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "$");
-                appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)), s, "$");
             }
             appendContents(join(COMMITS, readContentsAsString(HEAD)),  "!");
             appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)),  "!");
             for (String s : parentContents.fileLocation) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "@");
-                appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)), s, "@");
             }
         }
     }
@@ -610,19 +603,13 @@ public class Repository {
         writeContents(join(COMMITS, readContentsAsString(HEAD)), parentContents.message,
                 "@", parentContents.timestamp, "@", parentContents.parentHash, "@",
                 parentContents.currentHash, "@");
-        writeContents(join(OLDCOMMITS, readContentsAsString(HEAD)), parentContents.message,
-                "@", parentContents.timestamp, "@", parentContents.parentHash, "@",
-                parentContents.currentHash, "@");
         if (parentContents.refToBlobs.size() > 0) {
             for (String s : parentContents.refToBlobs) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "$");
-                appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)), s, "$");
             }
             appendContents(join(COMMITS, readContentsAsString(HEAD)),  "!");
-            appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)),  "!");
             for (String s : parentContents.fileLocation) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "@");
-                appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)), s, "@");
             }
         }
     }
