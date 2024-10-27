@@ -25,6 +25,7 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File COMMITS = join(GITLET_DIR, "commits");
     public static final File BLOBS = join(GITLET_DIR, "blobs");
+    public static final File OLDBLOBS = join(GITLET_DIR, "oldblobs");
     public static final File OLDCOMMITS = join(GITLET_DIR, "oldcommits");
 
     /* contain files recording secure hash */
@@ -78,6 +79,7 @@ public class Repository {
             ADDFILE.createNewFile();
             REMOVEFILE.createNewFile();
             OLDCOMMITS.mkdir();
+            OLDBLOBS.mkdir();
 //        INDEXFILE.createNewFile();
 //        BLOBINDEX.createNewFile();
             HEAD.createNewFile();
@@ -130,8 +132,11 @@ public class Repository {
                 }
             }
             File blob = join(BLOBS, fileHash);
+            File oldBlob = join(OLDBLOBS, fileHash);
             blob.createNewFile();
+            oldBlob.createNewFile();
             writeContents(blob, readContentsAsString(selected));
+            writeContents(oldBlob, readContentsAsString(selected));
             appendContents(ADDFILE, fileHash, ":", fileName, "@");
             return true;
         } catch (IOException e) {
@@ -155,7 +160,7 @@ public class Repository {
                 if (commitContents.fileLocation.get(i).equals(fileName)) {
                     restrictedDelete(toremove);
                     appendContents(REMOVEFILE, "^@", fileName, "@");
-//                    writeContents(join(BLOBS, commitContents.refToBlobs.get(i)), "");
+                    writeContents(join(BLOBS, commitContents.refToBlobs.get(i)), "");
                     return true;
                 }
             }
@@ -188,7 +193,7 @@ public class Repository {
                 if (s.equals(fileHash)) {
                     appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
                     restrictedDelete(toremove);
-//                    writeContents(join(BLOBS, fileHash), "");
+                    writeContents(join(BLOBS, fileHash), "");
                     mark = true;
                     break;
                 }
@@ -595,7 +600,7 @@ public class Repository {
                     psize--;
                     if (join(CWD, removed.get(i)).exists()) {
                         restrictedDelete(join(CWD, removed.get(i)));
-                        writeContents(join(BLOBS, deleteHash), "^");
+                        writeContents(join(BLOBS, deleteHash), "");
                     }
                 }
             }
@@ -768,7 +773,7 @@ public class Repository {
     public static boolean checkoutName(String name) {
         try {
             checkGitlet();
-            PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+            PseudoCommit contents = readCommit(join(OLDCOMMITS, readContentsAsString(OLDHEAD)));
 
             if (contents.fileLocation == null) {
                 return false;
@@ -783,10 +788,11 @@ public class Repository {
                     if (!overwriteFile.exists()) {
                         overwriteFile.createNewFile();
                     }
-                    String content = readContentsAsString(join(BLOBS,
+                    String content = readContentsAsString(join(OLDBLOBS,
                             contents.refToBlobs.get(i)));
                     writeContents(overwriteFile, content);
                     writeContents(HEAD, contents.currentHash);
+                    writeContents(OLDHEAD, contents.currentHash);
                     return true;
                 }
             }
@@ -818,7 +824,7 @@ public class Repository {
                             if (!overwriteFile.exists()) {
                                 overwriteFile.createNewFile();
                             }
-                            String content = readContentsAsString(join(BLOBS,
+                            String content = readContentsAsString(join(OLDBLOBS,
                                     contents.refToBlobs.get(i)));
                             writeContents(overwriteFile, content);
                             return true;
@@ -885,7 +891,7 @@ public class Repository {
                                 if (!contents.refToBlobs.get(j).equals(sha1(readContentsAsString(
                                         join(CWD, contents.fileLocation.get(j))),
                                                 contents.fileLocation.get(j)))) {
-                                    if (join(BLOBS, sha1(readContentsAsString(join(CWD,
+                                    if (join(OLDBLOBS, sha1(readContentsAsString(join(CWD,
                                             contents.fileLocation.get(j))),
                                             contents.fileLocation.get(j))).exists()) {
                                         continue;
@@ -919,7 +925,7 @@ public class Repository {
                             writeFile.createNewFile();
                         }
                         writeContents(writeFile, readContentsAsString(
-                                join(BLOBS, contents.refToBlobs.get(j))));
+                                join(OLDBLOBS, contents.refToBlobs.get(j))));
                     }
                     writeContents(HEAD, contents.currentHash);
                     writeContents(OLDHEAD, contents.currentHash);
@@ -940,7 +946,7 @@ public class Repository {
             for (String file : commitFile) {
                 PseudoCommit current = readCommit(join(OLDCOMMITS, file));
                 if (current.currentHash.substring(0, 6).equals(id.substring(0, 6))) {
-                    List<String> blobFiles = plainFilenamesIn(BLOBS);
+                    List<String> blobFiles = plainFilenamesIn(OLDBLOBS);
                     List<String> allFile = plainFilenamesIn(CWD);
                     List<String> allHash = new ArrayList<>(allFile.size());
                     int size = allFile.size();
@@ -985,7 +991,7 @@ public class Repository {
                         File writeFile = join(CWD, current.fileLocation.get(i));
                         writeFile.createNewFile();
                         writeContents(writeFile, readContentsAsString(
-                                join(BLOBS, current.refToBlobs.get(i))));
+                                join(OLDBLOBS, current.refToBlobs.get(i))));
                     }
                     writeContents(HEAD, current.currentHash);
                     writeContents(OLDHEAD, current.currentHash);
@@ -1136,7 +1142,7 @@ public class Repository {
             for (int i = 0; i < givenSize; i++) {
                 if (givenCommit.fileLocation.get(i).equals(fileName)) {
                     writeContents(join(CWD, fileName), readContentsAsString
-                            (join(BLOBS, givenCommit.refToBlobs.get(i))));
+                            (join(OLDBLOBS, givenCommit.refToBlobs.get(i))));
                     addFile(fileName);
                     break;
                 }
@@ -1156,7 +1162,7 @@ public class Repository {
                 String givenContent = "";
                 for (int i = 0; i < givenSize; ++i) {
                     if (givenCommit.fileLocation.get(i).equals(fileName)) {
-                        givenContent = readContentsAsString(join(BLOBS,
+                        givenContent = readContentsAsString(join(OLDBLOBS,
                                 givenCommit.refToBlobs.get(i)));
                     }
                 }
@@ -1189,7 +1195,7 @@ public class Repository {
             String splitContent = "";
             for (int i = 0; i < givenSize; ++i) {
                 if (givenCommit.fileLocation.get(i).equals(fileName)) {
-                    splitContent = readContentsAsString(join(BLOBS,
+                    splitContent = readContentsAsString(join(OLDBLOBS,
                             splitCommit.refToBlobs.get(i)));
                 }
             }
@@ -1224,13 +1230,13 @@ public class Repository {
             String givenContent = "";
             for (int i = 0; i < splitSize; ++i) {
                 if (splitCommit.fileLocation.get(i).equals(fileName)) {
-                    splitContent = readContentsAsString(join(BLOBS,
+                    splitContent = readContentsAsString(join(OLDBLOBS,
                             splitCommit.refToBlobs.get(i)));
                 }
             }
             for (int i = 0; i < givenSize; ++i) {
                 if (givenCommit.fileLocation.get(i).equals(fileName)) {
-                    givenContent = readContentsAsString(join(BLOBS,
+                    givenContent = readContentsAsString(join(OLDBLOBS,
                             givenCommit.refToBlobs.get(i)));
                 }
             }
@@ -1255,7 +1261,7 @@ public class Repository {
                     String givenContent = "";
                     for (int i = 0; i < givenSize; ++i) {
                         if (givenCommit.fileLocation.get(i).equals(fileName)) {
-                            givenContent = readContentsAsString(join(BLOBS,
+                            givenContent = readContentsAsString(join(OLDBLOBS,
                                     givenCommit.refToBlobs.get(i)));
                         }
                     }
@@ -1271,7 +1277,7 @@ public class Repository {
                     for (int i = 0; i < givenSize; ++i) {
                         if (givenCommit.fileLocation.get(i).equals(fileName)) {
                             writeContents(createFile, readContentsAsString(join(
-                                    BLOBS, givenCommit.refToBlobs.get(i))));
+                                    OLDBLOBS, givenCommit.refToBlobs.get(i))));
                             break;
                         }
                     }
@@ -1321,10 +1327,10 @@ public class Repository {
         }
         checkForMerge(allBranchNames, branchName, ancestorHash, givenSize, currentSize,
                 givenCommit, currentCommit);
+        String givenHash = "";
+        String currentHash = "";
+        String splitHash = "";
         for (String fileName : allFileName) {
-            String givenHash = "";
-            String currentHash = "";
-            String splitHash = "";
             for (int i = 0; i < givenSize; i++) {
                 if (givenCommit.fileLocation.get(i).equals(fileName)) {
                     givenHash = givenCommit.refToBlobs.get(i);
@@ -1360,7 +1366,7 @@ public class Repository {
                 flag = lackSplit(currentCommit, fileName, givenSize, givenCommit) && flag;
             }
         }
-        endOfMerge(branchName, givenCommit.currentHash, flag);
+        endOfMerge(branchName, givenHash, flag);
     }
 
     private static void endOfMerge(String branchName, String givenHash, boolean flag) {
@@ -1373,13 +1379,20 @@ public class Repository {
             String timestamp = Commit.formatDate(new Date());
             String commitHash = sha1(message, timestamp);
             File commitFile = join(COMMITS, commitHash);
+            File oldCommit = join(OLDCOMMITS, commitHash);
+            oldCommit.createNewFile();
             commitFile.createNewFile();
             writeContents(commitFile, message, "@", timestamp, "@", readContentsAsString(join(
                     BRANCHES, readContentsAsString(CURRENT))), "@", commitHash, "@$!@#",
                     readContentsAsString(join(BRANCHES, readContentsAsString(CURRENT))),
                     "@", givenHash);
+            writeContents(oldCommit, message, "@", timestamp, "@", readContentsAsString(join(
+                            BRANCHES, readContentsAsString(CURRENT))), "@", commitHash, "@$!@#",
+                    readContentsAsString(join(BRANCHES, readContentsAsString(CURRENT))),
+                    "@", givenHash);
             writeContents(join(BRANCHES, readContentsAsString(CURRENT)), commitHash);
             writeContents(HEAD, commitHash);
+            writeContents(OLDHEAD, commitHash);
             writeContents(ADDFILE, "");
             writeContents(REMOVEFILE, "");
         } catch (IOException e) {
