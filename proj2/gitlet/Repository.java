@@ -9,7 +9,7 @@ import static gitlet.Utils.*;
 /** Represents a gitlet repository.
  *  does at a high level.
  *
- *  @author
+ *  @author Haolong
  */
 public class Repository {
     /**
@@ -47,14 +47,19 @@ public class Repository {
         String currentHash;
         LinkedList<String> refToBlobs;
         LinkedList<String> fileLocation;
+        String firstParentHash;
+        String secondParentHash;
         private PseudoCommit(String msg, String tms, String prtH, String ha,
-                             LinkedList<String> ref, LinkedList<String> loc) {
+                             LinkedList<String> ref, LinkedList<String> loc,
+                             String firstHash, String secondHash) {
             message = msg;
             timestamp = tms;
             parentHash = prtH;
             currentHash = ha;
             refToBlobs = ref;
             fileLocation = loc;
+            firstParentHash = firstHash;
+            secondParentHash = secondHash;
         }
     }
 
@@ -150,7 +155,6 @@ public class Repository {
                     return true;
                 }
             }
-
             System.out.println("No reason to remove the file.");
             return false;
         }
@@ -166,12 +170,11 @@ public class Repository {
             }
             appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
             PseudoCommit commitContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-            while(!commitContents.parentHash.isEmpty()) {
+            while (!commitContents.parentHash.isEmpty()) {
                 for (String s : commitContents.refToBlobs) {
                     if (s.equals(fileHash)) {
                         restrictedDelete(toremove);
                         writeContents(join(BLOBS, fileHash), "");
-
                         break;
                     }
                 }
@@ -180,7 +183,6 @@ public class Repository {
                     break;
                 }
             }
-
         }
         if (!addContents[0].isEmpty()) {
             for (String s : addContents[1]) {
@@ -192,7 +194,7 @@ public class Repository {
         }
         PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
         boolean mark = false;
-        while(!contents.parentHash.isEmpty()) {
+        while (!contents.parentHash.isEmpty()) {
             for (String s : contents.refToBlobs) {
                 if (s.equals(fileHash)) {
                     appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
@@ -207,11 +209,10 @@ public class Repository {
                 break;
             }
         }
-        if (mark) {
-            return true;
+        if (!mark) {
+            System.out.println("No reason to remove the file.");
         }
-        System.out.println("No reason to remove the file.");
-        return false;
+        return mark;
     }
 
 
@@ -283,6 +284,10 @@ public class Repository {
 
         /* read file name */
         for (int i = index; i < size; i++) {
+            if (contents.charAt(i) == '#') {
+                index = i + 1;
+                break;
+            }
             if (contents.charAt(i) == '@') {
                 fileLoc.add(tmp);
                 tmp = "";
@@ -290,8 +295,25 @@ public class Repository {
                 tmp += contents.charAt(i);
             }
         }
+        String firstParentHash = "";
+        String secondParentHash = "";
+        if (index < size) {
+            for (int i = index; i < size; i++) {
+                if (contents.charAt(i) == '@') {
+                    index = i + 1;
+                    break;
+                }
+                firstParentHash += contents.charAt(i);
+            }
+            for (int i = index; i < size; i++) {
+                if (contents.charAt(i) == '@') {
+                    break;
+                }
+                secondParentHash += contents.charAt(i);
+            }
+        }
         return new PseudoCommit(message, timestamp, parentHash,
-                currentHash, refToBlob, fileLoc);
+                currentHash, refToBlob, fileLoc, firstParentHash, secondParentHash);
     }
 
     public static void log() {
@@ -307,6 +329,9 @@ public class Repository {
         System.out.println("Date: " + currentContents.timestamp);
         System.out.println(currentContents.message);
         System.out.println("");
+        if (!currentContents.firstParentHash.isEmpty()) {
+            return;
+        }
         while (currentContents.parentHash.length() != 0) {
             currentCommit = join(COMMITS, currentContents.parentHash);
             currentContents = readCommit(currentCommit);
@@ -315,6 +340,9 @@ public class Repository {
             System.out.println("Date: " + currentContents.timestamp);
             System.out.println(currentContents.message);
             System.out.println("");
+            if (!currentContents.firstParentHash.isEmpty()) {
+                return;
+            }
         }
     }
 
@@ -968,7 +996,8 @@ public class Repository {
             File commitFile = join(COMMITS, currentHash);
             commitFile.createNewFile();
 //        writeObject(commitFile, (Serializable) arg);
-            appendContents(commitFile, arg.getMessage(), "@", timestamp, "@@", currentHash, "@$!@");
+            appendContents(commitFile, arg.getMessage(),
+                    "@", timestamp, "@@", currentHash, "@$!@");
             writeContents(HEAD, currentHash);
             writeContents(MASTER, currentHash);
             writeContents(CURRENT, "master");
@@ -1109,7 +1138,7 @@ public class Repository {
                     }
                 }
                 writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
-                        currentContent, "=======\n", givenContent, ">>>>>>>");
+                        currentContent, "\n=======\n", givenContent, "\n>>>>>>>");
                 System.out.println("Encountered a merge conflict.");
                 System.exit(0);
             }
@@ -1134,15 +1163,15 @@ public class Repository {
         if (splitHash != currentHash) {
             // case: 3.2
             String currentContent = readContentsAsString(join(CWD, fileName));
-            String givenContent = "";
+            String splitContent = "";
             for (int i = 0; i < givenSize; ++i) {
                 if (givenCommit.fileLocation.get(i).equals(fileName)) {
-                    givenContent = readContentsAsString(join(BLOBS,
-                            givenCommit.refToBlobs.get(i)));
+                    splitContent = readContentsAsString(join(BLOBS,
+                            splitCommit.refToBlobs.get(i)));
                 }
             }
             writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
-                    currentContent, "=======\n", givenContent, ">>>>>>>");
+                    currentContent, "\n=======\n", splitContent, "\n>>>>>>>");
             System.out.println("Encountered a merge conflict.");
             System.exit(0);
         }
@@ -1164,11 +1193,18 @@ public class Repository {
     }
 
     private static void lackCurrent(String splitHash, String givenHash, String fileName,
-                                    int givenSize, PseudoCommit givenCommit) {
+                                    int givenSize, int splitSize, PseudoCommit givenCommit,
+                                    PseudoCommit splitCommit) {
         if (splitHash != givenHash) {
             // case: 3.2
-            String currentContent = readContentsAsString(join(CWD, fileName));
+            String splitContent = "";
             String givenContent = "";
+            for (int i = 0; i < splitSize; ++i) {
+                if (splitCommit.fileLocation.get(i).equals(fileName)) {
+                    splitContent = readContentsAsString(join(BLOBS,
+                            splitCommit.refToBlobs.get(i)));
+                }
+            }
             for (int i = 0; i < givenSize; ++i) {
                 if (givenCommit.fileLocation.get(i).equals(fileName)) {
                     givenContent = readContentsAsString(join(BLOBS,
@@ -1176,7 +1212,7 @@ public class Repository {
                 }
             }
             writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
-                    currentContent, "=======\n", givenContent, ">>>>>>>");
+                    splitContent, "\n=======\n", givenContent, "\n>>>>>>>");
             System.out.println("Encountered a merge conflict.");
             System.exit(0);
         }
@@ -1190,7 +1226,7 @@ public class Repository {
             if (currentCommit.fileLocation.contains(fileName)) {
                 if (!givenCommit.fileLocation.contains(fileName)) {
                     // case: 4
-
+                    return;
                 } else {
                     // case: 3.2
                     String currentContent = readContentsAsString(join(CWD, fileName));
@@ -1202,7 +1238,7 @@ public class Repository {
                         }
                     }
                     writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
-                            currentContent, "=======\n", givenContent, ">>>>>>>");
+                            currentContent, "\n=======\n", givenContent, "\n>>>>>>>");
                     System.out.println("Encountered a merge conflict.");
                     System.exit(0);
                 }
@@ -1294,14 +1330,14 @@ public class Repository {
                                 currentCommit, splitCommit);
                     }
                 } else {
-                    lackCurrent(splitHash, givenHash, fileName, givenSize, givenCommit);
+                    lackCurrent(splitHash, givenHash, fileName, givenSize, splitSize,
+                            givenCommit, splitCommit);
                 }
             } else {
                 lackSplit(currentCommit, fileName, givenSize, givenCommit);
             }
         }
         endOfMerge(branchName);
-
     }
 
     private static void endOfMerge(String branchName) {
