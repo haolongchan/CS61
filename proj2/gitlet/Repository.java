@@ -278,6 +278,7 @@ public class Repository {
             }
             if (contents.charAt(i) == '@') {
                 fileLoc.add(tmp);
+                index = i + 1;
                 tmp = "";
             } else {
                 tmp += contents.charAt(i);
