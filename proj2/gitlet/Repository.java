@@ -977,10 +977,22 @@ public class Repository {
         String currentHash = currentCommit.currentHash;
         while (parentHash != null) {
             givenParentBranch.add(parentHash);
+            if (parentHash == null) {
+                break;
+            }
+            if (parentHash.equals("")) {
+                break;
+            }
             parentHash = readCommit(join(COMMITS, parentHash)).parentHash;
         }
         while (currentParentBranch != null) {
             currentParentBranch.add(currentHash);
+            if (currentHash == null) {
+                break;
+            }
+            if (currentHash.equals("")) {
+                break;
+            }
             currentHash = readCommit(join(COMMITS, currentHash)).parentHash;
         }
         for (String s : givenParentBranch) {
