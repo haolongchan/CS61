@@ -33,6 +33,7 @@ public class Repository {
     public static final File STAGES = join(GITLET_DIR, "stages");
     public static final File ADDFILE = join(STAGES, "addfile");
     public static final File REMOVEFILE = join(STAGES, "removefile");
+    public static final File CHECKOUT = join(STAGES, "checkout");
 
     /* recording secure hash */
     public static final File HEAD = join(GITLET_DIR, "head");
@@ -80,6 +81,7 @@ public class Repository {
             REMOVEFILE.createNewFile();
             OLDCOMMITS.mkdir();
             OLDBLOBS.mkdir();
+            CHECKOUT.mkdir();
 //        INDEXFILE.createNewFile();
 //        BLOBINDEX.createNewFile();
             HEAD.createNewFile();
@@ -615,14 +617,51 @@ public class Repository {
     }
 
     private static void restoreForCheckout() {
-        File oldCommit = join(OLDCOMMITS, readContentsAsString(HEAD));
-        File newCommit = join(COMMITS, readContentsAsString(HEAD));
-        writeContents(newCommit, readContentsAsString(oldCommit));
-        PseudoCommit contents = readCommit(oldCommit);
-        if (contents.refToBlobs.size() > 1) {
-            for (String s : contents.refToBlobs) {
-                writeContents(join(BLOBS, s), readContentsAsString(join(OLDBLOBS, s)));
+        try {
+            File oldCommit = join(OLDCOMMITS, readContentsAsString(HEAD));
+            File newCommit = join(COMMITS, readContentsAsString(HEAD));
+            writeContents(newCommit, readContentsAsString(oldCommit));
+            PseudoCommit contents = readCommit(oldCommit);
+            if (contents.refToBlobs.size() > 1) {
+                for (String s : contents.refToBlobs) {
+                    writeContents(join(BLOBS, s), readContentsAsString(join(OLDBLOBS, s)));
+                }
             }
+            File rd = join(CHECKOUT, readContentsAsString(HEAD));
+            if (rd.exists()) {
+                String content = readContentsAsString(rd);
+                int size = content.length();
+                boolean checkName = false;
+                boolean operate = false;
+                String fileName = "";
+                String fileHash = "";
+                for (int i = 0; i < size; i++) {
+                    if (!checkName) {
+                        if (content.charAt(i) == ':') {
+                            checkName = true;
+                        } else {
+                            fileHash += content.charAt(i);
+                        }
+                    } else {
+                        if (content.charAt(i) == '@') {
+                            checkName = false;
+                            operate = true;
+                        } else {
+                            fileName += content.charAt(i);
+                        }
+                    }
+                    if (operate) {
+                        String fileContent = readContentsAsString(join(OLDBLOBS, fileHash));
+                        File writeFile = join(CWD, fileName);
+                        if (!writeFile.exists()) {
+                            writeFile.createNewFile();
+                        }
+                        writeContents(writeFile, fileContent);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -869,6 +908,7 @@ public class Repository {
     public static void checkoutBranch(String branchName) {
         try {
             checkGitlet();
+            saveCurrentBranch();
             List<String> branch = plainFilenamesIn(BRANCHES);
             for (int i = 0; i < branch.size(); i++) {
                 if (branch.get(i).equals(branchName)) {
@@ -944,6 +984,26 @@ public class Repository {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static void saveCurrentBranch() {
+        try {
+            List<String> allFile = plainFilenamesIn(CWD);
+            File saveBranch = join(CHECKOUT, readContentsAsString(CURRENT));
+            if (!saveBranch.exists()) {
+                saveBranch.createNewFile();
+            } else {
+                writeContents(saveBranch, "");
+            }
+            for (String fileName : allFile) {
+                String fileHash = sha1(readContentsAsString(join(CWD, fileName)), fileName);
+                appendContents(join(CHECKOUT, readContentsAsString(CURRENT)), fileHash, ":",
+                        fileName, "@");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     public static void reset(String id) {
