@@ -1346,7 +1346,8 @@ public class Repository {
 
     private static void endOfMerge(String branchName, String givenHash) {
         try {
-            String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT);
+            String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT)
+                    + ".";
             deleteBranch(join(BRANCHES, branchName));
             String timestamp = Commit.formatDate(new Date());
             String commitHash = sha1(message, timestamp);
