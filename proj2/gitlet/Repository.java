@@ -568,13 +568,19 @@ public class Repository {
         writeContents(join(COMMITS, readContentsAsString(HEAD)), parentContents.message,
                 "@", parentContents.timestamp, "@", parentContents.parentHash, "@",
                 parentContents.currentHash, "@");
+        writeContents(join(OLDCOMMITS, readContentsAsString(HEAD)), parentContents.message,
+                "@", parentContents.timestamp, "@", parentContents.parentHash, "@",
+                parentContents.currentHash, "@");
         if (parentContents.refToBlobs.size() > 0) {
             for (String s : parentContents.refToBlobs) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "$");
+                appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)), s, "$");
             }
             appendContents(join(COMMITS, readContentsAsString(HEAD)),  "!");
+            appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)),  "!");
             for (String s : parentContents.fileLocation) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "@");
+                appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)), s, "@");
             }
         }
     }
@@ -616,13 +622,19 @@ public class Repository {
         writeContents(join(COMMITS, readContentsAsString(HEAD)), parentContents.message,
                 "@", parentContents.timestamp, "@", parentContents.parentHash, "@",
                 parentContents.currentHash, "@");
+        writeContents(join(OLDCOMMITS, readContentsAsString(HEAD)), parentContents.message,
+                "@", parentContents.timestamp, "@", parentContents.parentHash, "@",
+                parentContents.currentHash, "@");
         if (parentContents.refToBlobs.size() > 0) {
             for (String s : parentContents.refToBlobs) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "$");
+                appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)), s, "$");
             }
             appendContents(join(COMMITS, readContentsAsString(HEAD)),  "!");
+            appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)),  "!");
             for (String s : parentContents.fileLocation) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "@");
+                appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)), s, "@");
             }
         }
     }
@@ -722,6 +734,7 @@ public class Repository {
                 }
             }
             appendContents(commitFile, "!");
+            appendContents(oldCommitFile, "!");
             if (arg.getFileLocation().size() != 0) {
                 for (String location : arg.getFileLocation()) {
                     appendContents(commitFile, location, "@");
@@ -784,7 +797,7 @@ public class Repository {
             }
             for (int i = 0; i < size; i++) {
                 if (contents.fileLocation.get(i).equals(name)) {
-                    File overwriteFile = join(CWD, contents.fileLocation.get(i));
+                    File overwriteFile = join(CWD, name);
                     if (!overwriteFile.exists()) {
                         overwriteFile.createNewFile();
                     }
