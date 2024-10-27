@@ -1142,7 +1142,7 @@ public class Repository {
                     }
                 }
                 writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
-                        currentContent, "\n=======\n", givenContent, "\n>>>>>>>");
+                        currentContent, "=======\n", givenContent, ">>>>>>>\n");
                 System.out.println("Encountered a merge conflict.");
                 System.exit(0);
             }
@@ -1175,7 +1175,7 @@ public class Repository {
                 }
             }
             writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
-                    currentContent, "\n=======\n", splitContent, "\n>>>>>>>");
+                    currentContent, "=======\n", splitContent, ">>>>>>>\n");
             System.out.println("Encountered a merge conflict.");
             System.exit(0);
         }
@@ -1216,7 +1216,7 @@ public class Repository {
                 }
             }
             writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
-                    splitContent, "\n=======\n", givenContent, "\n>>>>>>>");
+                    splitContent, "=======\n", givenContent, ">>>>>>>\n");
             System.out.println("Encountered a merge conflict.");
             System.exit(0);
         }
@@ -1242,7 +1242,7 @@ public class Repository {
                         }
                     }
                     writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
-                            currentContent, "\n=======\n", givenContent, "\n>>>>>>>");
+                            currentContent, "=======\n", givenContent, ">>>>>>>\n");
                     System.out.println("Encountered a merge conflict.");
                     System.exit(0);
                 }
