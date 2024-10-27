@@ -619,7 +619,7 @@ public class Repository {
         File newCommit = join(COMMITS, readContentsAsString(HEAD));
         writeContents(newCommit, readContentsAsString(oldCommit));
         PseudoCommit contents = readCommit(oldCommit);
-        if (!contents.refToBlobs.isEmpty()) {
+        if (contents.refToBlobs.size() > 1) {
             for (String s : contents.refToBlobs) {
                 writeContents(join(BLOBS, s), readContentsAsString(join(OLDBLOBS, s)));
             }
