@@ -694,7 +694,7 @@ public class Repository {
                     File newCommit = join(COMMITS, currentHash);
                     File oldCommit = join(OLDCOMMITS, currentHash);
                     newCommit.createNewFile();
-                    newCommit.createNewFile();
+                    oldCommit.createNewFile();
                     appendContents(newCommit, arg.getMessage(), "@", timestamp, "@",
                             parentHash, "@", currentHash, "@$!@");
                     appendContents(oldCommit, arg.getMessage(), "@", timestamp, "@",
