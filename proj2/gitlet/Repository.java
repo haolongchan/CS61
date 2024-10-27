@@ -1109,7 +1109,7 @@ public class Repository {
         }
     }
 
-    private static void threeFiles(String splitHash, String currentHash, String givenHash,
+    private static boolean threeFiles(String splitHash, String currentHash, String givenHash,
                                    int givenSize, String fileName, PseudoCommit givenCommit) {
         // case: 1, 2, 3
         if (splitHash != givenHash && splitHash == currentHash) {
@@ -1143,13 +1143,13 @@ public class Repository {
                 }
                 writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
                         currentContent, "=======\n", givenContent, ">>>>>>>\n");
-                System.out.println("Encountered a merge conflict.");
-                System.exit(0);
+                return false;
             }
         }
+        return true;
     }
 
-    private static void lackGiven(String splitHash, String currentHash, String fileName,
+    private static boolean lackGiven(String splitHash, String currentHash, String fileName,
                                   PseudoCommit givenCommit, PseudoCommit currentCommit,
                                   PseudoCommit splitCommit) {
         int givenSize = givenCommit.fileLocation.size();
@@ -1176,8 +1176,7 @@ public class Repository {
             }
             writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
                     currentContent, "=======\n", splitContent, ">>>>>>>\n");
-            System.out.println("Encountered a merge conflict.");
-            System.exit(0);
+            return false;
         }
         // case: 6
         for (int i = 0; i < currentSize; ++i) {
@@ -1188,15 +1187,16 @@ public class Repository {
                                 (splitCommit.refToBlobs.get(j))) {
                             restrictedDelete(join(CWD, fileName));
                             writeContents(join(BLOBS, currentCommit.refToBlobs.get(i)), "");
-                            return;
+                            return true;
                         }
                     }
                 }
             }
         }
+        return true;
     }
 
-    private static void lackCurrent(String splitHash, String givenHash, String fileName,
+    private static boolean lackCurrent(String splitHash, String givenHash, String fileName,
                                     int givenSize, int splitSize, PseudoCommit givenCommit,
                                     PseudoCommit splitCommit) {
         if (splitHash != givenHash) {
@@ -1217,20 +1217,19 @@ public class Repository {
             }
             writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
                     splitContent, "=======\n", givenContent, ">>>>>>>\n");
-            System.out.println("Encountered a merge conflict.");
-            System.exit(0);
+            return false;
         }
         // case: 7
-
+        return true;
     }
 
-    private static void lackSplit(PseudoCommit currentCommit, String fileName, int givenSize,
+    private static boolean lackSplit(PseudoCommit currentCommit, String fileName, int givenSize,
                                   PseudoCommit givenCommit) {
         try {
             if (currentCommit.fileLocation.contains(fileName)) {
                 if (!givenCommit.fileLocation.contains(fileName)) {
                     // case: 4
-                    return;
+                    return true;
                 } else {
                     // case: 3.2
                     String currentContent = readContentsAsString(join(CWD, fileName));
@@ -1243,8 +1242,7 @@ public class Repository {
                     }
                     writeContents(join(CWD, fileName), "<<<<<<< HEAD\n",
                             currentContent, "=======\n", givenContent, ">>>>>>>\n");
-                    System.out.println("Encountered a merge conflict.");
-                    System.exit(0);
+                    return false;
                 }
             } else {
                 // case: 5
@@ -1260,6 +1258,7 @@ public class Repository {
                     }
                 }
             }
+            return true;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -1273,6 +1272,7 @@ public class Repository {
                 readContentsAsString(join(BRANCHES, branchName))));
         PseudoCommit currentCommit = readCommit(join(COMMITS, readContentsAsString(HEAD)));
         PseudoCommit splitCommit = readCommit(join(COMMITS, ancestorHash));
+        boolean flag = true;
         for (String fileName : givenCommit.fileLocation) {
             if (!fileName.equals("")) {
                 allFileName.add(fileName);
@@ -1327,19 +1327,22 @@ public class Repository {
             if (splitCommit.fileLocation.contains(fileName)) {
                 if (currentCommit.fileLocation.contains(fileName)) {
                     if (givenCommit.fileLocation.contains(fileName)) {
-                        threeFiles(splitHash, currentHash, givenHash, givenSize, fileName,
-                                givenCommit);
+                        flag = threeFiles(splitHash, currentHash, givenHash, givenSize, fileName,
+                                givenCommit) && flag;
                     } else {
-                        lackGiven(splitHash, currentHash, fileName, givenCommit,
-                                currentCommit, splitCommit);
+                        flag = lackGiven(splitHash, currentHash, fileName, givenCommit,
+                                currentCommit, splitCommit) && flag;
                     }
                 } else {
-                    lackCurrent(splitHash, givenHash, fileName, givenSize, splitSize,
-                            givenCommit, splitCommit);
+                    flag = lackCurrent(splitHash, givenHash, fileName, givenSize, splitSize,
+                            givenCommit, splitCommit) && flag;
                 }
             } else {
-                lackSplit(currentCommit, fileName, givenSize, givenCommit);
+                flag = lackSplit(currentCommit, fileName, givenSize, givenCommit) && flag;
             }
+        }
+        if (!flag) {
+            System.out.println("Encountered a merge conflict.");
         }
         endOfMerge(branchName, givenCommit.currentHash);
     }
