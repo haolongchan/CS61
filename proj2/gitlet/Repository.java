@@ -166,14 +166,21 @@ public class Repository {
             }
             appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
             PseudoCommit commitContents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-            for (String s : commitContents.refToBlobs) {
-                if (s.equals(fileHash)) {
-                    restrictedDelete(toremove);
-                    writeContents(join(BLOBS, fileHash), "");
+            while(!commitContents.parentHash.isEmpty()) {
+                for (String s : commitContents.refToBlobs) {
+                    if (s.equals(fileHash)) {
+                        restrictedDelete(toremove);
+                        writeContents(join(BLOBS, fileHash), "");
 
-                    return true;
+                        break;
+                    }
+                }
+                commitContents = readCommit(join(COMMITS, commitContents.parentHash));
+                if (commitContents.parentHash == null) {
+                    break;
                 }
             }
+
         }
         if (!addContents[0].isEmpty()) {
             for (String s : addContents[1]) {
@@ -184,13 +191,24 @@ public class Repository {
             }
         }
         PseudoCommit contents = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-        for (String s : contents.refToBlobs) {
-            if (s.equals(fileHash)) {
-                appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
-                restrictedDelete(toremove);
-                writeContents(join(BLOBS, fileHash), "");
-                return true;
+        boolean mark = false;
+        while(!contents.parentHash.isEmpty()) {
+            for (String s : contents.refToBlobs) {
+                if (s.equals(fileHash)) {
+                    appendContents(REMOVEFILE, fileHash, "@", fileName, "@");
+                    restrictedDelete(toremove);
+                    writeContents(join(BLOBS, fileHash), "");
+                    mark = true;
+                    break;
+                }
             }
+            contents = readCommit(join(COMMITS, contents.parentHash));
+            if (contents.parentHash == null) {
+                break;
+            }
+        }
+        if (mark) {
+            return true;
         }
         System.out.println("No reason to remove the file.");
         return false;
@@ -1135,7 +1153,9 @@ public class Repository {
                     if (splitCommit.fileLocation.get(j).equals(fileName)) {
                         if (currentCommit.refToBlobs.get(i).equals
                                 (splitCommit.refToBlobs.get(j))) {
-                            removeFile(fileName);
+                            restrictedDelete(join(CWD, fileName));
+                            writeContents(join(BLOBS, currentCommit.refToBlobs.get(i)), "");
+                            return;
                         }
                     }
                 }
@@ -1170,7 +1190,7 @@ public class Repository {
             if (currentCommit.fileLocation.contains(fileName)) {
                 if (!givenCommit.fileLocation.contains(fileName)) {
                     // case: 4
-                    addFile(fileName);
+
                 } else {
                     // case: 3.2
                     String currentContent = readContentsAsString(join(CWD, fileName));
@@ -1294,7 +1314,10 @@ public class Repository {
             commitFile.createNewFile();
             writeContents(commitFile, message, "@", timestamp, "@", readContentsAsString(join(
                     BRANCHES, readContentsAsString(CURRENT))), "@", commitHash, "@$!@");
-            writeContents(CURRENT, branchName);
+            writeContents(join(BRANCHES, readContentsAsString(CURRENT)), commitHash);
+            writeContents(HEAD, commitHash);
+            writeContents(ADDFILE, "");
+            writeContents(REMOVEFILE, "");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
