@@ -621,7 +621,7 @@ public class Repository {
         PseudoCommit contents = readCommit(oldCommit);
         if (!contents.refToBlobs.isEmpty()) {
             for (String s : contents.refToBlobs) {
-                writeContents(join(COMMITS, s), readContentsAsString(join(OLDCOMMITS, s)));
+                writeContents(join(BLOBS, s), readContentsAsString(join(OLDBLOBS, s)));
             }
         }
     }
