@@ -1294,7 +1294,7 @@ public class Repository {
         PseudoCommit givenCommit = readCommit(join(COMMITS,
                 readContentsAsString(join(BRANCHES, branchName))));
         PseudoCommit currentCommit = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-        PseudoCommit splitCommit = readCommit(join(COMMITS, ancestorHash));
+        PseudoCommit splitCommit = readCommit(join(OLDCOMMITS, ancestorHash));
         boolean flag = true;
         for (String fileName : givenCommit.fileLocation) {
             if (!fileName.equals("")) {
