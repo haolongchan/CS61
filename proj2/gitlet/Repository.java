@@ -637,7 +637,16 @@ public class Repository {
                 writeContents(newCommit, arg.getMessage(), "@", timestamp, "@",
                         parentHash, "@", currentHash, "@$!@");
                 writeContents(oldCommit, arg.getMessage(), "@", timestamp, "@",
-                        parentHash, "@", currentHash, "@$!@");
+                        parentHash, "@", currentHash, "@");
+                List<String> allFile = plainFilenamesIn(CWD);
+                for (String s : allFile) {
+                    String fileHash = sha1(readContentsAsString(join(CWD, s)), s);
+                    appendContents(oldCommit, fileHash, "$");
+                }
+                appendContents(oldCommit, "!");
+                for (String s : allFile) {
+                    appendContents(oldCommit, s, "@");
+                }
                 writeContents(ADDFILE, "");
                 writeContents(REMOVEFILE, "");
                 writeContents(HEAD, currentHash);
@@ -672,7 +681,16 @@ public class Repository {
                     appendContents(newCommit, arg.getMessage(), "@", timestamp, "@",
                             parentHash, "@", currentHash, "@$!@");
                     appendContents(oldCommit, arg.getMessage(), "@", timestamp, "@",
-                            parentHash, "@", currentHash, "@$!@");
+                            parentHash, "@", currentHash, "@");
+                    List<String> allFile = plainFilenamesIn(CWD);
+                    for (String s : allFile) {
+                        String fileHash = sha1(readContentsAsString(join(CWD, s)), s);
+                        appendContents(oldCommit, fileHash, "$");
+                    }
+                    appendContents(oldCommit, "!");
+                    for (String s : allFile) {
+                        appendContents(oldCommit, s, "@");
+                    }
                     writeContents(ADDFILE, "");
                     writeContents(REMOVEFILE, "");
                     writeContents(HEAD, currentHash);
@@ -704,16 +722,25 @@ public class Repository {
             if (arg.getRefToBlobs().size() != 0) {
                 for (String blobsItem : arg.getRefToBlobs()) {
                     appendContents(commitFile, blobsItem, "$");
-                    appendContents(oldCommitFile, blobsItem, "$");
+//                    appendContents(oldCommitFile, blobsItem, "$");
                 }
             }
             appendContents(commitFile, "!");
-            appendContents(oldCommitFile, "!");
+//            appendContents(oldCommitFile, "!");
             if (arg.getFileLocation().size() != 0) {
                 for (String location : arg.getFileLocation()) {
                     appendContents(commitFile, location, "@");
-                    appendContents(oldCommitFile, location, "@");
+//                    appendContents(oldCommitFile, location, "@");
                 }
+            }
+            List<String> allFile = plainFilenamesIn(CWD);
+            for (String s : allFile) {
+                String fileHash = sha1(readContentsAsString(join(CWD, s)), s);
+                appendContents(oldCommitFile, fileHash, "$");
+            }
+            appendContents(oldCommitFile, "!");
+            for (String s : allFile) {
+                appendContents(oldCommitFile, s, "@");
             }
             writeContents(HEAD, currentHash);
             writeContents(OLDHEAD, currentHash);
