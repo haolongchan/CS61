@@ -1296,16 +1296,9 @@ public class Repository {
         }
     }
 
-    public static void merge(String branchName) {
-        List<String> allBranchNames = plainFilenamesIn(BRANCHES);
-        checkBranchName(allBranchNames, branchName);
-        String ancestorHash = lca(branchName, readContentsAsString(CURRENT));
+    private static Set<String> offerAllFile (PseudoCommit givenCommit, PseudoCommit currentCommit,
+                                             PseudoCommit splitCommit) {
         Set<String> allFileName = new HashSet<>();
-        PseudoCommit givenCommit = readCommit(join(COMMITS,
-                readContentsAsString(join(BRANCHES, branchName))));
-        PseudoCommit currentCommit = readCommit(join(COMMITS, readContentsAsString(HEAD)));
-        PseudoCommit splitCommit = readCommit(join(OLDCOMMITS, ancestorHash));
-        boolean flag = true;
         for (String fileName : givenCommit.fileLocation) {
             if (!fileName.equals("")) {
                 allFileName.add(fileName);
@@ -1321,6 +1314,19 @@ public class Repository {
                 allFileName.add(fileName);
             }
         }
+        return allFileName;
+    }
+
+    public static void merge(String branchName) {
+        List<String> allBranchNames = plainFilenamesIn(BRANCHES);
+        checkBranchName(allBranchNames, branchName);
+        String ancestorHash = lca(branchName, readContentsAsString(CURRENT));
+        PseudoCommit givenCommit = readCommit(join(COMMITS,
+                readContentsAsString(join(BRANCHES, branchName))));
+        PseudoCommit currentCommit = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+        PseudoCommit splitCommit = readCommit(join(OLDCOMMITS, ancestorHash));
+        boolean flag = true;
+        Set<String> allFileName = offerAllFile(givenCommit, currentCommit, splitCommit);
         int givenSize = givenCommit.fileLocation.size();
         int currentSize = currentCommit.fileLocation.size();
         int splitSize = splitCommit.fileLocation.size();
