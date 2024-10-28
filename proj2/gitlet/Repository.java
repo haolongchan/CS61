@@ -567,7 +567,6 @@ public class Repository {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "$");
             }
             appendContents(join(COMMITS, readContentsAsString(HEAD)),  "!");
-            appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)),  "!");
             for (String s : parentContents.fileLocation) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "@");
             }
