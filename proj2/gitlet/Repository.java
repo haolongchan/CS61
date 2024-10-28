@@ -27,6 +27,7 @@ public class Repository {
     public static final File BLOBS = join(GITLET_DIR, "blobs");
     public static final File OLDBLOBS = join(GITLET_DIR, "oldblobs");
     public static final File OLDCOMMITS = join(GITLET_DIR, "oldcommits");
+    public static final File STORAGE = join(GITLET_DIR, "storage");
 
     /* contain files recording secure hash */
     public static final File BRANCHES = join(GITLET_DIR, "branches");
@@ -83,6 +84,7 @@ public class Repository {
 //        INDEXFILE.createNewFile();
 //        BLOBINDEX.createNewFile();
             HEAD.createNewFile();
+            STORAGE.mkdir();
             OLDHEAD.createNewFile();
             MASTER.createNewFile();
             CURRENT.createNewFile();
@@ -567,6 +569,7 @@ public class Repository {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "$");
             }
             appendContents(join(COMMITS, readContentsAsString(HEAD)),  "!");
+            appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)),  "!");
             for (String s : parentContents.fileLocation) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "@");
             }
@@ -613,6 +616,53 @@ public class Repository {
         }
     }
 
+    private static void storage() {
+        try {
+            File file = join(STORAGE, readContentsAsString(HEAD));
+            List<String> allFile = plainFilenamesIn(CWD);
+            file.createNewFile();
+            for (String s : allFile) {
+                String content = readContentsAsString(join(CWD, s));
+                String fileHash = sha1(content, s);
+                appendContents(file, fileHash, ":", s, "@");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static LinkedList<String>[] readStorage(String id) {
+        File file = join(STORAGE, id);
+        LinkedList<String>[] answer = new LinkedList[2];
+        answer[0] = new LinkedList<>();
+        answer[1] = new LinkedList<>();
+        String content = readContentsAsString(file);
+        int size = content.length();
+        boolean checkFirst = true;
+        String hash = "";
+        String name = "";
+        for (int i = 0; i < size; i++) {
+            if (checkFirst) {
+                if (content.charAt(i) == ':') {
+                    checkFirst = false;
+                    answer[0].add(hash);
+                    hash = "";
+                } else {
+                    hash += content.charAt(i);
+                }
+            } else {
+                if (content.charAt(i) == '@') {
+                    checkFirst = true;
+                    answer[1].add(name);
+                    name = "";
+                } else {
+                    name += content.charAt(i);
+                }
+            }
+        }
+        return answer;
+    }
+
     /*
      * create a commit
      * 1. Linked to parent
@@ -637,21 +687,13 @@ public class Repository {
                 writeContents(newCommit, arg.getMessage(), "@", timestamp, "@",
                         parentHash, "@", currentHash, "@$!@");
                 writeContents(oldCommit, arg.getMessage(), "@", timestamp, "@",
-                        parentHash, "@", currentHash, "@");
-                List<String> allFile = plainFilenamesIn(CWD);
-                for (String s : allFile) {
-                    String fileHash = sha1(readContentsAsString(join(CWD, s)), s);
-                    appendContents(oldCommit, fileHash, "$");
-                }
-                appendContents(oldCommit, "!");
-                for (String s : allFile) {
-                    appendContents(oldCommit, s, "@");
-                }
+                        parentHash, "@", currentHash, "@$!@");
                 writeContents(ADDFILE, "");
                 writeContents(REMOVEFILE, "");
                 writeContents(HEAD, currentHash);
                 writeContents(OLDHEAD, currentHash);
                 writeContents(join(BRANCHES, readContentsAsString(CURRENT)), currentHash);
+                storage();
                 return;
             }
             LinkedList<String>[] stagedHash = readAddStage();
@@ -681,21 +723,13 @@ public class Repository {
                     appendContents(newCommit, arg.getMessage(), "@", timestamp, "@",
                             parentHash, "@", currentHash, "@$!@");
                     appendContents(oldCommit, arg.getMessage(), "@", timestamp, "@",
-                            parentHash, "@", currentHash, "@");
-                    List<String> allFile = plainFilenamesIn(CWD);
-                    for (String s : allFile) {
-                        String fileHash = sha1(readContentsAsString(join(CWD, s)), s);
-                        appendContents(oldCommit, fileHash, "$");
-                    }
-                    appendContents(oldCommit, "!");
-                    for (String s : allFile) {
-                        appendContents(oldCommit, s, "@");
-                    }
+                            parentHash, "@", currentHash, "@$!@");
                     writeContents(ADDFILE, "");
                     writeContents(REMOVEFILE, "");
                     writeContents(HEAD, currentHash);
                     writeContents(OLDHEAD, currentHash);
                     writeContents(join(BRANCHES, readContentsAsString(CURRENT)), currentHash);
+                    storage();
                 }
             }
             if (staged.size() > 0) {
@@ -722,31 +756,23 @@ public class Repository {
             if (arg.getRefToBlobs().size() != 0) {
                 for (String blobsItem : arg.getRefToBlobs()) {
                     appendContents(commitFile, blobsItem, "$");
-//                    appendContents(oldCommitFile, blobsItem, "$");
+                    appendContents(oldCommitFile, blobsItem, "$");
                 }
             }
             appendContents(commitFile, "!");
-//            appendContents(oldCommitFile, "!");
+            appendContents(oldCommitFile, "!");
             if (arg.getFileLocation().size() != 0) {
                 for (String location : arg.getFileLocation()) {
                     appendContents(commitFile, location, "@");
-//                    appendContents(oldCommitFile, location, "@");
+                    appendContents(oldCommitFile, location, "@");
                 }
-            }
-            List<String> allFile = plainFilenamesIn(CWD);
-            for (String s : allFile) {
-                String fileHash = sha1(readContentsAsString(join(CWD, s)), s);
-                appendContents(oldCommitFile, fileHash, "$");
-            }
-            appendContents(oldCommitFile, "!");
-            for (String s : allFile) {
-                appendContents(oldCommitFile, s, "@");
             }
             writeContents(HEAD, currentHash);
             writeContents(OLDHEAD, currentHash);
             writeContents(join(BRANCHES, readContentsAsString(CURRENT)), currentHash);
             writeContents(ADDFILE, "");
             writeContents(REMOVEFILE, "");
+            storage();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -1331,6 +1357,12 @@ public class Repository {
                 readContentsAsString(join(BRANCHES, branchName))));
         PseudoCommit currentCommit = readCommit(join(COMMITS, readContentsAsString(HEAD)));
         PseudoCommit splitCommit = readCommit(join(OLDCOMMITS, ancestorHash));
+        LinkedList<String>[] given = readStorage(readContentsAsString(join(BRANCHES, branchName)));
+        LinkedList<String>[] current = readStorage(readContentsAsString(HEAD));
+        givenCommit.refToBlobs = given[0];
+        givenCommit.fileLocation = given[1];
+        currentCommit.refToBlobs = current[0];
+        currentCommit.fileLocation = current[1];
         boolean flag = true;
         for (String fileName : givenCommit.fileLocation) {
             if (!fileName.equals("")) {
