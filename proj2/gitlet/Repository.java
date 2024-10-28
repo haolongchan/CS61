@@ -922,6 +922,7 @@ public class Repository {
                     writeContents(HEAD, contents.currentHash);
                     writeContents(OLDHEAD, contents.currentHash);
                     writeContents(CURRENT, branchName);
+                    renew();
                     return;
                 }
             }
@@ -929,6 +930,12 @@ public class Repository {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static void renew() {
+        File oldCommit = join(OLDCOMMITS, readContentsAsString(OLDHEAD));
+        File commit = join(COMMITS, readContentsAsString(HEAD));
+        writeContents(commit, readContentsAsString(oldCommit));
     }
 
     public static void reset(String id) {
