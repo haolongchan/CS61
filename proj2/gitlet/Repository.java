@@ -32,6 +32,7 @@ public class Repository {
     public static final File BRANCHES = join(GITLET_DIR, "branches");
     public static final File STAGES = join(GITLET_DIR, "stages");
     public static final File ADDFILE = join(STAGES, "addfile");
+    public static final File STORAGE = join(STAGES, "storage");
     public static final File REMOVEFILE = join(STAGES, "removefile");
 
     /* recording secure hash */
@@ -80,6 +81,7 @@ public class Repository {
             REMOVEFILE.createNewFile();
             OLDCOMMITS.mkdir();
             OLDBLOBS.mkdir();
+            STORAGE.mkdir();
 //        INDEXFILE.createNewFile();
 //        BLOBINDEX.createNewFile();
             HEAD.createNewFile();
@@ -639,6 +641,7 @@ public class Repository {
                         parentHash, "@", currentHash, "@$!@");
                 writeContents(oldCommit, arg.getMessage(), "@", timestamp, "@",
                         parentHash, "@", currentHash, "@$!@");
+                storage();
                 writeContents(ADDFILE, "");
                 writeContents(REMOVEFILE, "");
                 writeContents(HEAD, currentHash);
@@ -674,6 +677,7 @@ public class Repository {
                             parentHash, "@", currentHash, "@$!@");
                     appendContents(oldCommit, arg.getMessage(), "@", timestamp, "@",
                             parentHash, "@", currentHash, "@$!@");
+                    storage();
                     writeContents(ADDFILE, "");
                     writeContents(REMOVEFILE, "");
                     writeContents(HEAD, currentHash);
@@ -716,6 +720,7 @@ public class Repository {
                     appendContents(oldCommitFile, location, "@");
                 }
             }
+            storage();
             writeContents(HEAD, currentHash);
             writeContents(OLDHEAD, currentHash);
             writeContents(join(BRANCHES, readContentsAsString(CURRENT)), currentHash);
@@ -922,6 +927,7 @@ public class Repository {
                     writeContents(HEAD, contents.currentHash);
                     writeContents(OLDHEAD, contents.currentHash);
                     writeContents(CURRENT, branchName);
+                    refresh(branchName);
                     return;
                 }
             }
@@ -1296,7 +1302,71 @@ public class Repository {
         }
     }
 
-    private static Set<String> offerAllFile (PseudoCommit givenCommit, PseudoCommit currentCommit,
+    private static void storage() {
+        try {
+            File file = join(STORAGE, readContentsAsString(HEAD));
+            List<String> allFile = plainFilenamesIn(CWD);
+            file.createNewFile();
+            for (String s : allFile) {
+                String content = readContentsAsString(join(CWD, s));
+                String fileHash = sha1(content, s);
+                appendContents(file, fileHash, ":", s, "@");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static LinkedList<String>[] readStorage(String id) {
+        File file = join(STORAGE, id);
+        LinkedList<String>[] answer = new LinkedList[2];
+        answer[0] = new LinkedList<>();
+        answer[1] = new LinkedList<>();
+        String content = readContentsAsString(file);
+        int size = content.length();
+        boolean checkFirst = true;
+        String hash = "";
+        String name = "";
+        for (int i = 0; i < size; i++) {
+            if (checkFirst) {
+                if (content.charAt(i) == ':') {
+                    checkFirst = false;
+                    answer[0].add(hash);
+                    hash = "";
+                } else {
+                    hash += content.charAt(i);
+                }
+            } else {
+                if (content.charAt(i) == '@') {
+                    checkFirst = true;
+                    answer[1].add(name);
+                    name = "";
+                } else {
+                    name += content.charAt(i);
+                }
+            }
+        }
+        return answer;
+    }
+
+    private static void refresh(String branchName) {
+        try {
+            String id = readCommit(join(BRANCHES, branchName)).currentHash;
+            LinkedList<String>[] answer = readStorage(id);
+            for (int i = 0; i < answer[0].size(); ++i) {
+                String contents = readContentsAsString(join(OLDBLOBS, answer[0].get(i)));
+                File file = join(CWD, answer[1].get(i));
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                writeContents(file, contents);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Set<String> offerAllFile(PseudoCommit givenCommit, PseudoCommit currentCommit,
                                              PseudoCommit splitCommit) {
         Set<String> allFileName = new HashSet<>();
         for (String fileName : givenCommit.fileLocation) {
