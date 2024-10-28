@@ -27,6 +27,7 @@ public class Repository {
     public static final File BLOBS = join(GITLET_DIR, "blobs");
     public static final File OLDBLOBS = join(GITLET_DIR, "oldblobs");
     public static final File OLDCOMMITS = join(GITLET_DIR, "oldcommits");
+    public static final File STORAGE = join(GITLET_DIR, "storage");
 
     /* contain files recording secure hash */
     public static final File BRANCHES = join(GITLET_DIR, "branches");
@@ -80,6 +81,7 @@ public class Repository {
             REMOVEFILE.createNewFile();
             OLDCOMMITS.mkdir();
             OLDBLOBS.mkdir();
+            STORAGE.mkdir();
 //        INDEXFILE.createNewFile();
 //        BLOBINDEX.createNewFile();
             HEAD.createNewFile();
@@ -567,7 +569,6 @@ public class Repository {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "$");
             }
             appendContents(join(COMMITS, readContentsAsString(HEAD)),  "!");
-            appendContents(join(OLDCOMMITS, readContentsAsString(HEAD)),  "!");
             for (String s : parentContents.fileLocation) {
                 appendContents(join(COMMITS, readContentsAsString(HEAD)), s, "@");
             }
@@ -644,6 +645,7 @@ public class Repository {
                 writeContents(HEAD, currentHash);
                 writeContents(OLDHEAD, currentHash);
                 writeContents(join(BRANCHES, readContentsAsString(CURRENT)), currentHash);
+                setStorage();
                 return;
             }
             LinkedList<String>[] stagedHash = readAddStage();
@@ -679,6 +681,7 @@ public class Repository {
                     writeContents(HEAD, currentHash);
                     writeContents(OLDHEAD, currentHash);
                     writeContents(join(BRANCHES, readContentsAsString(CURRENT)), currentHash);
+                    setStorage();
                 }
             }
             if (staged.size() > 0) {
@@ -721,6 +724,7 @@ public class Repository {
             writeContents(join(BRANCHES, readContentsAsString(CURRENT)), currentHash);
             writeContents(ADDFILE, "");
             writeContents(REMOVEFILE, "");
+            setStorage();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -932,10 +936,70 @@ public class Repository {
         }
     }
 
+    private static void setStorage() {
+        try {
+            List<String> allFile = plainFilenamesIn(CWD);
+            File writeFile = join(STORAGE, readContentsAsString(HEAD));
+            writeFile.createNewFile();
+            for (String name : allFile) {
+                String hash = sha1(readContentsAsString(join(CWD, name)), name);
+                appendContents(writeFile, hash, ":", name, "@");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static LinkedList<String>[] readStorage(String id) {
+        File readFile = join(STORAGE, id);
+        LinkedList<String>[] ret = new LinkedList[2];
+        ret[0] = new LinkedList();
+        ret[1] = new LinkedList();
+        String fileHash = "";
+        String fileName = "";
+        String content = readContentsAsString(readFile);
+        int size = content.length();
+        boolean hash = true;
+        for (int i = 0; i < size; i++) {
+            if (hash) {
+                if (content.charAt(i) == ':') {
+                    hash = false;
+                    ret[0].add(fileHash);
+                    fileHash = "";
+                } else {
+                    fileHash += content.charAt(i);
+                }
+            } else {
+                if (content.charAt(i) == '@') {
+                    hash = true;
+                    ret[1].add(fileName);
+                    fileName = "";
+                } else {
+                    fileName += content.charAt(i);
+                }
+            }
+        }
+        return ret;
+    }
+
     private static void renew() {
-        File oldCommit = join(OLDCOMMITS, readContentsAsString(OLDHEAD));
-        File commit = join(COMMITS, readContentsAsString(HEAD));
-        writeContents(commit, readContentsAsString(oldCommit));
+        try {
+            String id = readContentsAsString(HEAD);
+            LinkedList<String>[] file = readStorage(id);
+            int size = file[0].size();
+            for (int i = 0; i < size; i++) {
+                String fileName = file[1].get(i);
+                String fileHash = file[0].get(i);
+                String content = readContentsAsString(join(OLDBLOBS, fileHash));
+                File writeFile = join(CWD, fileName);
+                if (!writeFile.exists()) {
+                    writeFile.createNewFile();
+                }
+                writeContents(writeFile, content);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void reset(String id) {
