@@ -1187,7 +1187,7 @@ public class Repository {
             splitSize = 0;
         }
         if (splitHash != currentHash) {
-            if (currentHash.isEmpty() || currentHash.equals("")) {
+            if (currentHash.isEmpty() || currentHash.equals("@")) {
                 return true;
             }
             // case: 3.2
@@ -1225,7 +1225,7 @@ public class Repository {
                                        int givenSize, int splitSize, PseudoCommit givenCommit,
                                        PseudoCommit splitCommit) {
         if (splitHash != givenHash) {
-            if (givenHash.isEmpty() || givenHash.equals("")) {
+            if (givenHash.isEmpty() || givenHash.equals("@")) {
                 return true;
             }
             // case: 3.2
@@ -1335,10 +1335,10 @@ public class Repository {
         }
         checkForMerge(branchName, ancestorHash, givenSize, currentSize,
                 givenCommit, currentCommit);
-        String givenHash = "";
-        String currentHash = "";
-        String splitHash = "";
         for (String fileName : allFileName) {
+            String givenHash = "@";
+            String currentHash = "@";
+            String splitHash = "@";
             for (int i = 0; i < givenSize; i++) {
                 if (givenCommit.fileLocation.get(i).equals(fileName)) {
                     givenHash = givenCommit.refToBlobs.get(i);
@@ -1361,28 +1361,29 @@ public class Repository {
                 if (currentCommit.fileLocation.contains(fileName)) {
                     if (givenCommit.fileLocation.contains(fileName)) {
                         flag = threeFiles(splitHash, currentHash, givenHash, givenSize, fileName,
-                                givenCommit) && flag;
+                                givenCommit);
                     } else {
                         flag = lackGiven(splitHash, currentHash, fileName, givenCommit,
-                                currentCommit, splitCommit) && flag;
+                                currentCommit, splitCommit);
                     }
                 } else {
                     flag = lackCurrent(splitHash, givenHash, fileName, givenSize, splitSize,
-                            givenCommit, splitCommit) && flag;
+                            givenCommit, splitCommit);
                 }
             } else {
                 flag = lackSplit(currentCommit, fileName, givenSize, givenCommit,
-                        currentHash, givenHash) && flag;
+                        currentHash, givenHash);
             }
         }
-        endOfMerge(branchName, givenHash, flag);
+        endOfMerge(branchName, flag);
     }
 
-    private static void endOfMerge(String branchName, String givenHash, boolean flag) {
+    private static void endOfMerge(String branchName, boolean flag) {
         try {
             if (!flag) {
                 System.out.println("Encountered a merge conflict.");
             }
+            String givenHash = readContentsAsString(join(BRANCHES, branchName));
             String message = "Merged " + branchName + " into " + readContentsAsString(CURRENT)
                     + ".";
             String timestamp = Commit.formatDate(new Date());
