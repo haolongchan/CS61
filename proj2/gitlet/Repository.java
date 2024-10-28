@@ -327,7 +327,7 @@ public class Repository {
         }
         System.out.println("Date: " + currentContents.timestamp);
         System.out.println(currentContents.message);
-        System.out.println("");
+        System.out.println();
         while (currentContents.parentHash.length() != 0) {
             currentCommit = join(COMMITS, currentContents.parentHash);
             currentContents = readCommit(currentCommit);
@@ -339,7 +339,7 @@ public class Repository {
             }
             System.out.println("Date: " + currentContents.timestamp);
             System.out.println(currentContents.message);
-            System.out.println("");
+            System.out.println();
         }
     }
 
@@ -365,7 +365,7 @@ public class Repository {
             }
             System.out.println("Date: " + currentContents.timestamp);
             System.out.println(currentContents.message);
-            System.out.println("");
+            System.out.println();
         }
     }
 
@@ -409,7 +409,7 @@ public class Repository {
                 System.out.println(branchName.get(i));
             }
         }
-        System.out.println("");
+        System.out.println();
         System.out.println("=== Staged Files ===");
         LinkedList<String>[] stagedHash = readAddStage();
         LinkedList<String>[] removedHash = readRemoveStage();
@@ -433,16 +433,16 @@ public class Repository {
         for (int i = 0; i < size; ++i) {
             System.out.println(stage.get(i));
         }
-        System.out.println("");
+        System.out.println();
         System.out.println("=== Removed Files ===");
         size = remove.size();
         for (int i = 0; i < size; ++i) {
             System.out.println(remove.get(i));
         }
-        System.out.println("");
+        System.out.println();
         System.out.println("=== Modifications Not Staged For Commit ===");
 
-        System.out.println("");
+        System.out.println();
         System.out.println("=== Untracked Files ===");
 
     }
@@ -880,6 +880,7 @@ public class Repository {
                             if (contents.refToBlobs.get(j).equals
                                     (headContents.refToBlobs.get(k))) {
                                 checked = true;
+                                break;
                             }
                         }
                         if (!checked) {
@@ -905,6 +906,7 @@ public class Repository {
                             if (contents.refToBlobs.get(j).equals
                                     (headContents.refToBlobs.get(k))) {
                                 checked = true;
+                                break;
                             }
                         }
                         if (!checked) {
@@ -939,7 +941,7 @@ public class Repository {
 
     private static void writeOldCommitToCurrent() {
         String id = readContentsAsString(HEAD);
-        File oldCommit = join(OLDCOMMITS, id);;
+        File oldCommit = join(OLDCOMMITS, id);
         File commit = join(COMMITS, id);
         writeContents(commit, readContentsAsString(oldCommit));
     }
@@ -1040,6 +1042,7 @@ public class Repository {
                         for (String blobHash : blobFiles) {
                             if (blobHash.equals(fileHash)) {
                                 checked = true;
+                                break;
                             }
                         }
                         if (!checked) {
@@ -1121,6 +1124,7 @@ public class Repository {
         List<String> currentParentBranch = new ArrayList<>();
         String currentHash = currentCommit.currentHash;
         while (parentHash != null) {
+//            System.out.println("parentHash: " + parentHash);
             givenParentBranch.add(parentHash);
             if (parentHash == null) {
                 break;
@@ -1131,6 +1135,7 @@ public class Repository {
             parentHash = readCommit(join(COMMITS, parentHash)).parentHash;
         }
         while (currentParentBranch != null) {
+//            System.out.println("currentParentBranch: " + currentHash);
             currentParentBranch.add(currentHash);
             if (currentHash == null) {
                 break;
@@ -1192,6 +1197,7 @@ public class Repository {
                 if (givenCommit.refToBlobs.get(i).equals
                         (currentCommit.refToBlobs.get(j))) {
                     checked = true;
+                    break;
                 }
             }
             if (!checked) {
@@ -1308,6 +1314,7 @@ public class Repository {
                                        LinkedList<String>[] splitCommit) {
         if (splitHash != givenHash) {
             if (givenHash.isEmpty() || givenHash.equals("@")) {
+                restrictedDelete(join(CWD, fileName));
                 return true;
             }
             // case: 3.2
@@ -1343,6 +1350,9 @@ public class Repository {
                     return true;
                 } else {
                     if (currentHash.equals(givenHash)) {
+                        if (currentHash.equals("@")) {
+                            restrictedDelete(join(CWD, fileName));
+                        }
                         return true;
                     }
                     // case: 3.2
@@ -1495,6 +1505,62 @@ public class Repository {
             writeContents(REMOVEFILE, "");
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void test() {
+        String branchName = "other";
+        List<String> allBranchNames = plainFilenamesIn(BRANCHES);
+        checkBranchName(allBranchNames, branchName);
+        String ancestorHash = lca(branchName, readContentsAsString(CURRENT));
+        PseudoCommit givenCommit = readCommit(join(COMMITS,
+                readContentsAsString(join(BRANCHES, branchName))));
+        PseudoCommit currentCommit = readCommit(join(COMMITS, readContentsAsString(HEAD)));
+        LinkedList<String>[] splitCommit = readStorage(ancestorHash);
+        Set<String> allFileName = offerAllFile(givenCommit, currentCommit, splitCommit);
+
+        int givenSize = givenCommit.fileLocation.size();
+        int currentSize = currentCommit.fileLocation.size();
+        int splitSize = splitCommit[0].size();
+        if (givenSize == 1 && givenCommit.fileLocation.get(0).equals("")) {
+            givenSize = 0;
+        }
+        if (currentSize == 1 && currentCommit.fileLocation.get(0).equals("")) {
+            currentSize = 0;
+        }
+        if (splitSize == 1 && splitCommit[1].get(0).equals("")) {
+            splitSize = 0;
+        }
+        checkForMerge(branchName, ancestorHash, givenSize, currentSize,
+                givenCommit, currentCommit);
+//        System.out.println(givenSize);
+//        System.out.println(currentSize);
+//        System.out.println(splitSize);
+        for (String fileName : allFileName) {
+            String givenHash = "@";
+            String currentHash = "@";
+            String splitHash = "@";
+            for (int i = 0; i < givenSize; i++) {
+                if (givenCommit.fileLocation.get(i).equals(fileName)) {
+                    givenHash = givenCommit.refToBlobs.get(i);
+                    break;
+                }
+            }
+            for (int i = 0; i < currentSize; i++) {
+                if (currentCommit.fileLocation.get(i).equals(fileName)) {
+                    currentHash = currentCommit.refToBlobs.get(i);
+                    break;
+                }
+            }
+            for (int i = 0; i < splitSize; i++) {
+                if (splitCommit[1].get(i).equals(fileName)) {
+                    splitHash = splitCommit[0].get(i);
+                    break;
+                }
+            }
+            System.out.println(givenHash);
+            System.out.println(currentHash);
+            System.out.println(splitHash);
         }
     }
 

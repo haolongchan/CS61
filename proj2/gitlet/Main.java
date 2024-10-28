@@ -13,6 +13,8 @@ public class Main {
 
         // test
 //        Repository.merge("other");
+        Repository.test();
+        System.exit(0);
 
         if (args.length == 0) {
             System.out.println("Please enter a command.");
