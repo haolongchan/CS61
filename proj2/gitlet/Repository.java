@@ -1351,7 +1351,8 @@ public class Repository {
 
     private static void refresh(String branchName) {
         try {
-            String id = readCommit(join(BRANCHES, branchName)).currentHash;
+            String id = readCommit(join(COMMITS, readContentsAsString(join(BRANCHES,
+                    branchName)))).currentHash;
             LinkedList<String>[] answer = readStorage(id);
             for (int i = 0; i < answer[0].size(); ++i) {
                 String contents = readContentsAsString(join(OLDBLOBS, answer[0].get(i)));
