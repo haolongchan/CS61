@@ -927,6 +927,7 @@ public class Repository {
                     writeContents(OLDHEAD, contents.currentHash);
                     writeContents(CURRENT, branchName);
                     renew();
+                    writeOldCommitToCurrent();
                     return;
                 }
             }
@@ -934,6 +935,13 @@ public class Repository {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static void writeOldCommitToCurrent() {
+        String id = readContentsAsString(HEAD);
+        File oldCommit = join(OLDCOMMITS, id);;
+        File commit = join(COMMITS, id);
+        writeContents(commit, readContentsAsString(oldCommit));
     }
 
     private static void setStorage() {
