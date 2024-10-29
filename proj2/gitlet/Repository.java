@@ -1132,11 +1132,11 @@ public class Repository {
         LinkedList<String>[] currentCommit = readStorage(
                 readContentsAsString(join(BRANCHES, currentBranch)));
         LinkedList<String> givenParentBranch = new LinkedList<>();
-        String parentHash = readContentsAsString(join(BRANCHES, givenBranch));
+        String parentHash = readCommit(join(BRANCHES, givenBranch)).currentHash;
         LinkedList<String> parentList = new LinkedList<>();
         parentList.addLast(parentHash);
         LinkedList<String> currentParentBranch = new LinkedList<>();
-        String currentHash = readContentsAsString(join(BRANCHES, currentBranch));
+        String currentHash = readCommit(join(BRANCHES, currentBranch)).currentHash;
         LinkedList<String> currentList = new LinkedList<>();
         currentList.addLast(currentHash);
             // mistake may occur
@@ -1144,10 +1144,13 @@ public class Repository {
             String cur = parentList.removeFirst();
             givenParentBranch.addLast(cur);
             if (readCommit(join(COMMITS, cur)).message.equals("initial commit")) {
-                parentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
                 continue;
             }
             if (readCommit(join(COMMITS, cur)).firstParentHash.isEmpty()) {
+                parentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
+                continue;
+            }
+            if (readCommit(join(COMMITS, cur)).firstParentHash.equals("")) {
                 parentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
                 continue;
             }
@@ -1158,10 +1161,13 @@ public class Repository {
             String cur = currentList.removeFirst();
             currentParentBranch.addLast(cur);
             if (readCommit(join(COMMITS, cur)).message.equals("initial commit")) {
-                currentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
                 continue;
             }
             if (readCommit(join(COMMITS, cur)).firstParentHash.isEmpty()) {
+                currentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
+                continue;
+            }
+            if (readCommit(join(COMMITS, cur)).firstParentHash.equals("")) {
                 currentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
                 continue;
             }
