@@ -1133,29 +1133,24 @@ public class Repository {
                 readContentsAsString(join(BRANCHES, currentBranch)));
         LinkedList<String> givenParentBranch = new LinkedList<>();
         String parentHash = readContentsAsString(join(BRANCHES, givenBranch));
+        LinkedList<String> parentList = new LinkedList<>();
+        parentList.addLast(parentHash);
         LinkedList<String> currentParentBranch = new LinkedList<>();
         String currentHash = readContentsAsString(join(BRANCHES, currentBranch));
-        while (parentHash != null) {
-//            System.out.println("parentHash: " + parentHash);
-            givenParentBranch.addLast(parentHash);
-            if (parentHash == null) {
-                break;
-            }
-            if (parentHash.equals("")) {
-                break;
-            }
-            parentHash = readCommit(join(COMMITS, parentHash)).parentHash;
+        LinkedList<String> currentList = new LinkedList<>();
+        currentList.addLast(currentHash);
+            // mistake may occur
+        while (!parentList.isEmpty()) {
+            String cur = parentList.removeFirst();
+            givenParentBranch.addLast(cur);
+            parentList.addLast(readCommit(join(COMMITS, cur)).firstParentHash);
+            parentList.addLast(readCommit(join(COMMITS, cur)).secondParentHash);
         }
-        while (currentParentBranch != null) {
-//            System.out.println("currentParentBranch: " + currentHash);
-            currentParentBranch.addLast(currentHash);
-            if (currentHash == null) {
-                break;
-            }
-            if (currentHash.equals("")) {
-                break;
-            }
-            currentHash = readCommit(join(COMMITS, currentHash)).parentHash;
+        while (!currentList.isEmpty()) {
+            String cur = currentList.removeFirst();
+            currentParentBranch.addLast(cur);
+            currentList.addLast(readCommit(join(COMMITS, cur)).firstParentHash);
+            currentList.addLast(readCommit(join(COMMITS, cur)).secondParentHash);
         }
         for (String s : givenParentBranch) {
             for (String ss : currentParentBranch) {
