@@ -954,7 +954,11 @@ public class Repository {
         try {
             List<String> allFile = plainFilenamesIn(CWD);
             File writeFile = join(STORAGE, readContentsAsString(HEAD));
-            writeFile.createNewFile();
+            if (!writeFile.exists()) {
+                writeFile.createNewFile();
+            } else {
+                writeContents(writeFile, "");
+            }
             for (String name : allFile) {
                 String hash = sha1(readContentsAsString(join(CWD, name)), name);
                 appendContents(writeFile, hash, ":", name, "@");
@@ -998,6 +1002,10 @@ public class Repository {
 
     private static void renew() {
         try {
+            List<String> deleteFile = plainFilenamesIn(CWD);
+            for (String name : deleteFile) {
+                restrictedDelete(join(CWD, name));
+            }
             String id = readContentsAsString(HEAD);
             LinkedList<String>[] file = readStorage(id);
             int size = file[0].size();
@@ -1119,17 +1127,17 @@ public class Repository {
     }
 
     private static String lca(String givenBranch, String currentBranch) {
-        PseudoCommit givenCommit = readCommit(join(COMMITS,
-                readContentsAsString(join(BRANCHES, givenBranch))));
-        PseudoCommit currentCommit = readCommit(join(COMMITS,
-                readContentsAsString(join(BRANCHES, currentBranch))));
-        List<String> givenParentBranch = new ArrayList<>();
-        String parentHash = givenCommit.currentHash;
-        List<String> currentParentBranch = new ArrayList<>();
-        String currentHash = currentCommit.currentHash;
+        LinkedList<String>[] givenCommit = readStorage(
+                readContentsAsString(join(BRANCHES, givenBranch)));
+        LinkedList<String>[] currentCommit = readStorage(
+                readContentsAsString(join(BRANCHES, currentBranch)));
+        LinkedList<String> givenParentBranch = new LinkedList<>();
+        String parentHash = readContentsAsString(join(BRANCHES, givenBranch));
+        LinkedList<String> currentParentBranch = new LinkedList<>();
+        String currentHash = readContentsAsString(join(BRANCHES, currentBranch));
         while (parentHash != null) {
 //            System.out.println("parentHash: " + parentHash);
-            givenParentBranch.add(parentHash);
+            givenParentBranch.addLast(parentHash);
             if (parentHash == null) {
                 break;
             }
@@ -1140,7 +1148,7 @@ public class Repository {
         }
         while (currentParentBranch != null) {
 //            System.out.println("currentParentBranch: " + currentHash);
-            currentParentBranch.add(currentHash);
+            currentParentBranch.addLast(currentHash);
             if (currentHash == null) {
                 break;
             }
@@ -1228,7 +1236,7 @@ public class Repository {
                                       int givenSize, String fileName,
                                       LinkedList<String>[] givenCommit) {
         // case: 1, 2, 3
-        if (splitHash != givenHash && splitHash == currentHash) {
+        if (!splitHash.equals(givenHash) && splitHash.equals(currentHash)) {
             // case: 1
             for (int i = 0; i < givenSize; i++) {
                 if (givenCommit[1].get(i).equals(fileName)) {
@@ -1239,17 +1247,17 @@ public class Repository {
                 }
             }
         }
-        if (splitHash == givenHash && splitHash != currentHash) {
+        if (splitHash.equals(givenHash) && !splitHash.equals(currentHash)) {
             // case: 2
             addFile(fileName);
         }
-        if (splitHash != givenHash && splitHash != currentHash) {
-            if (givenHash == currentHash) {
+        if (!splitHash.equals(givenHash) && !splitHash.equals(currentHash)) {
+            if (givenHash.equals(currentHash)) {
                 // case: 3.1
                 addFile(fileName);
             } else {
                 // case: 3.2
-                String currentContent = readContentsAsString(join(CWD, fileName));
+                String currentContent = readContentsAsString(join(OLDBLOBS, currentHash));
                 String givenContent = "";
                 for (int i = 0; i < givenSize; ++i) {
                     if (givenCommit[1].get(i).equals(fileName)) {
@@ -1286,7 +1294,7 @@ public class Repository {
                 return true;
             }
             // case: 3.2
-            String currentContent = readContentsAsString(join(CWD, fileName));
+            String currentContent = readContentsAsString(join(OLDBLOBS, currentHash));
             String splitContent = "";
             for (int i = 0; i < givenSize; ++i) {
                 if (givenCommit[1].get(i).equals(fileName)) {
@@ -1320,7 +1328,7 @@ public class Repository {
                                        int givenSize, int splitSize,
                                        LinkedList<String>[] givenCommit,
                                        LinkedList<String>[] splitCommit) {
-        if (splitHash != givenHash) {
+        if (!splitHash.equals(givenHash)) {
             if (givenHash.isEmpty() || givenHash.equals("@")) {
                 restrictedDelete(join(CWD, fileName));
                 return true;
@@ -1332,6 +1340,7 @@ public class Repository {
                 if (splitCommit[1].get(i).equals(fileName)) {
                     splitContent = readContentsAsString(join(OLDBLOBS,
                             splitCommit[0].get(i)));
+                    break;
                 }
             }
             for (int i = 0; i < givenSize; ++i) {
@@ -1365,7 +1374,7 @@ public class Repository {
                         return true;
                     }
                     // case: 3.2
-                    String currentContent = readContentsAsString(join(CWD, fileName));
+                    String currentContent = readContentsAsString(join(OLDBLOBS, currentHash));
                     String givenContent = "";
                     for (int i = 0; i < givenSize; ++i) {
                         if (givenCommit[1].get(i).equals(fileName)) {

@@ -13,7 +13,7 @@ public class Main {
 
         // test
 //        Repository.merge("other");
-//        Repository.test();
+          Repository.merge("other");
 //        System.exit(0);
 
         if (args.length == 0) {
