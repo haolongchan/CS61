@@ -1513,6 +1513,7 @@ public class Repository {
             writeContents(OLDHEAD, commitHash);
             writeContents(ADDFILE, "");
             writeContents(REMOVEFILE, "");
+            setStorage();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
