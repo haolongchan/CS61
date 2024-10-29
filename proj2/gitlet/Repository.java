@@ -1143,7 +1143,7 @@ public class Repository {
         while (!parentList.isEmpty()) {
             String cur = parentList.removeFirst();
             givenParentBranch.addLast(cur);
-            if (readCommit(join(COMMITS, cur)).firstParentHash == null) {
+            if (readCommit(join(COMMITS, cur)).message.equals("initial commit")) {
                 parentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
                 continue;
             }
@@ -1157,7 +1157,7 @@ public class Repository {
         while (!currentList.isEmpty()) {
             String cur = currentList.removeFirst();
             currentParentBranch.addLast(cur);
-            if (readCommit(join(COMMITS, cur)).firstParentHash == null) {
+            if (readCommit(join(COMMITS, cur)).message.equals("initial commit")) {
                 currentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
                 continue;
             }
