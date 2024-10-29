@@ -1143,12 +1143,20 @@ public class Repository {
         while (!parentList.isEmpty()) {
             String cur = parentList.removeFirst();
             givenParentBranch.addLast(cur);
+            if (readCommit(join(COMMITS, cur)).firstParentHash.isEmpty()) {
+                parentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
+                continue;
+            }
             parentList.addLast(readCommit(join(COMMITS, cur)).firstParentHash);
             parentList.addLast(readCommit(join(COMMITS, cur)).secondParentHash);
         }
         while (!currentList.isEmpty()) {
             String cur = currentList.removeFirst();
             currentParentBranch.addLast(cur);
+            if (readCommit(join(COMMITS, cur)).firstParentHash.isEmpty()) {
+                currentList.addLast(readCommit(join(COMMITS, cur)).parentHash);
+                continue;
+            }
             currentList.addLast(readCommit(join(COMMITS, cur)).firstParentHash);
             currentList.addLast(readCommit(join(COMMITS, cur)).secondParentHash);
         }
