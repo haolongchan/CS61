@@ -1289,7 +1289,7 @@ public class Repository {
         if (splitSize == 1 && splitCommit[1].get(0).equals("")) {
             splitSize = 0;
         }
-        if (splitHash != currentHash) {
+        if (!splitHash.equals(currentHash)) {
             if (currentHash.isEmpty() || currentHash.equals("@")) {
                 return true;
             }
