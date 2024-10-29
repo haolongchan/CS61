@@ -1132,11 +1132,13 @@ public class Repository {
         LinkedList<String>[] currentCommit = readStorage(
                 readContentsAsString(join(BRANCHES, currentBranch)));
         LinkedList<String> givenParentBranch = new LinkedList<>();
-        String parentHash = readCommit(join(BRANCHES, givenBranch)).currentHash;
+        String parentHash = readCommit(join(COMMITS, readContentsAsString(join(BRANCHES,
+                givenBranch)))).currentHash;
         LinkedList<String> parentList = new LinkedList<>();
         parentList.addLast(parentHash);
         LinkedList<String> currentParentBranch = new LinkedList<>();
-        String currentHash = readCommit(join(BRANCHES, currentBranch)).currentHash;
+        String currentHash = readCommit(join(COMMITS, readContentsAsString(join(BRANCHES,
+                currentBranch)))).currentHash;
         LinkedList<String> currentList = new LinkedList<>();
         currentList.addLast(currentHash);
             // mistake may occur
